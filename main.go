@@ -259,7 +259,7 @@ For now we're adding as we go:
 - customizable font sizes for each of time, date and UTC time
 - customizable font color for each of background, time, date and UTC time
 - clock display window resizes automatically to suit selected font sizes
-- optional setting to enable starting at reboot
+- optional setting to enable auto starting at boot
 
 - See Settings Info tab for more detail on settings / preferences
 
