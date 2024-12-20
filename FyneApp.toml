@@ -1,0 +1,13 @@
+[Details]
+ID = "com.tanium.TaniumClock"
+Name = "Tanium Clock"
+Creator = "Allan Marillier"
+Version = "0.2"
+Build = 1
+Icon = "TaniumClock.png"
+
+[Development]
+  HelperText = "This binary was built with debug symbols"
+
+[Release]
+  HelperText = "This binary was built without debug symbols"
