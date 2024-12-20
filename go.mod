@@ -7,6 +7,7 @@ require (
 	fyne.io/systray v1.11.0
 	github.com/gopxl/beep/v2 v2.1.0
 	github.com/itchyny/volume-go v0.2.2
+	github.com/spiretechnology/go-autostart/v2 v2.0.0
 )
 
 require (

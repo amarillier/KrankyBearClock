@@ -23,7 +23,7 @@ import (
 
 const (
 	clockName      = "Tanium Clock"
-	clockVersion   = "0.2" // see FyneApp.toml
+	clockVersion   = "0.3" // see FyneApp.toml
 	clockCopyright = "(c) Tanium, 2024"
 	clockAuthor    = "Allan Marillier"
 )
@@ -54,6 +54,7 @@ var timesize int
 var datesize int
 var utcsize int
 var hourchimesound string
+var startclock int
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
@@ -117,6 +118,7 @@ func main() {
 	datesize = a.Preferences().IntWithFallback("datesize.default", 24)
 	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
 	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
+	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
 	writeSettings(a)
 
 	var tre, tgr, tbl, ta uint8
@@ -202,7 +204,7 @@ func main() {
 			log.Println("datesize:", datesize)
 			log.Println("utcsize:", utcsize)
 			log.Println("hourchimesound:", hourchimesound)
-
+			log.Println("startclock:", startclock)
 		}
 	}
 
@@ -257,6 +259,7 @@ For now we're adding as we go:
 - customizable font sizes for each of time, date and UTC time
 - customizable font color for each of background, time, date and UTC time
 - clock display window resizes automatically to suit selected font sizes
+- optional setting to enable starting at reboot
 
 - See Settings Info tab for more detail on settings / preferences
 

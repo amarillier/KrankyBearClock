@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/spiretechnology/go-autostart/v2"
 )
 
 var fileButton *widget.Button
@@ -132,6 +133,27 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				playMp3(sndDir + "/" + hourchimesound)
 			}
 			a.Preferences().SetString("hourchimesound.default", hourchimesound)
+		})
+		startatboot := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("startatboot set to", value)
+			}
+			autoClock := autostart.New(autostart.Options{
+				Label:       "com.tanium.TaniumClock",
+				Name:        "TaniumClock",
+				Description: "Tanium Clock",
+				Mode:        autostart.ModeUser,
+				Arguments:   []string{},
+			})
+			switch value {
+			case true:
+				startclock = 1
+				autoClock.Enable()
+			case false:
+				startclock = 0
+				autoClock.Disable()
+			}
+			a.Preferences().SetInt("startclock.default", startclock)
 		})
 
 		tsz := widget.NewEntry()
@@ -270,11 +292,6 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		})
 
 		/*
-			/*
-			bgcolor - see tutorial dialog for advanced color picker
-			timecolor
-			datecolor
-			utccolor
 			timefont
 			datefont
 			utcfont
@@ -293,10 +310,12 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			chime.SetChecked(true)
 			hourchimesound = "cuckoo.mp3"
 			chimesound.Selected = hourchimesound
+			startatboot.SetChecked(false)
 			showsec.Refresh()
 			showtz.Refresh()
 			showut.Refresh()
 			showhr1224.Refresh()
+			startatboot.Refresh()
 			chime.Refresh()
 			chimesound.Refresh()
 			timesize = 48
@@ -347,6 +366,11 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			chime.SetChecked(false)
 		}
 		chimesound.Selected = hourchimesound
+		if startclock == 1 {
+			startatboot.SetChecked(true)
+		} else {
+			startatboot.SetChecked(false)
+		}
 
 		/*
 			background.Selected = timerbg
@@ -357,6 +381,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Show Date", showdt),
 			widget.NewFormItem("Show UTC", showut),
 			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
+			widget.NewFormItem("Auto Start at Boot", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
 		)
@@ -439,6 +464,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("datesize.default", 24)
 	a.Preferences().SetInt("utcsize.default", 18)
 	a.Preferences().SetString("hourchimesound.default", "cuckoo.mp3")
+	a.Preferences().SetInt("startclock.default", startclock)
 }
 
 func writeSettings(a fyne.App) {
@@ -460,6 +486,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("datesize.default", datesize)
 	a.Preferences().SetInt("utcsize.default", utcsize)
 	a.Preferences().SetString("hourchimesound.default", hourchimesound)
+	a.Preferences().SetInt("startclock.default", startclock)
 }
 
 // func colorPicker(parent fyne.Window, colorDisplay *canvas.Rectangle) color.Color {
