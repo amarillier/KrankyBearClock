@@ -1,4 +1,4 @@
-# Tanium Clock
+# Tanium Clock - personal fun / learning side project
 
 # preferences stored via fyne preferences API land in
 # ~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
@@ -18,12 +18,19 @@
 
 # modules
 go mod init TaniumClock
+
 go mod tidy
+
 go get fyne.io/fyne/v2@latest
+
 go install fyne.io/fyne/v2/cmd/fyne@latest
+
 go install fyne.io/fyne/v2/cmd/fyne_demo@latest // gets fyne_demo etc
+
 go get -u github.com/gopxl/beep/v2
+
 go get -u github.com/gopxl/beep/mp3
+
 go get -u github.com/gopxl/beep/v2/mid
 
 Occasionally go mod vendor to resolve problems
