@@ -1,8 +1,9 @@
 # Tanium Clock - personal fun / learning side project
 
-# preferences stored via fyne preferences API land in
-# ~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
-# ~\AppData\Roaming\fyne\com.tanium.taniumclock\preferences.json
+preferences stored via fyne preferences API land in
+~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
+~\AppData\Roaming\fyne\com.tanium.taniumclock\preferences.json
+MacOS resource location (sounds and backgrounds): /Applications/Tanium Timer.app/Contents/Resources
 
 
 ## Features
@@ -15,6 +16,17 @@
 * show 12 / 24 hour time
 * hourly chime and chime selector
 * settings to allow modifying font sizes, colors, font name, background color
+
+# To-do / known problems
+- Allow optional always on top, save in prefs - may not be possible on Mac
+https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
+
+- Known problems - needs OpenGL drivers on some Windows
+- Improve performance - this is a bit CPU / memory intensive, likely mostly due to displaying seconds and updating the timer display every second
+  - if done every minute instead and seconds not show, CPU use should reduce a decent bit
+- Possibly add one or more clock alarms - one time, recurring etc.
+
+# Info for compiling / modifying
 
 # modules
 go mod init TaniumClock
