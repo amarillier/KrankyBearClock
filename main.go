@@ -246,9 +246,8 @@ func main() {
 					hlp = nil
 				})
 				//}
-				hlpText := `More help will be added later
-For now we're adding as we go:
-- This is a basic clock that currently shows
+				hlpText := `This is a basic desktop clock that currently shows:
+
 - time in 12 /24 hour format 
 - optional seconds
 - optional timezone
@@ -260,6 +259,10 @@ For now we're adding as we go:
 - customizable font color for each of background, time, date and UTC time
 - clock display window resizes automatically to suit selected font sizes
 - optional setting to enable auto starting at boot
+
+- Note: Displaying seconds can be quite resource intensive with clock display updates every second. 
+  The app can be substantially less CPU intensive when seconds are not displayed, allowing the app to
+  refresh the display every minute rather than every second
 
 - See Settings Info tab for more detail on settings / preferences
 
@@ -285,6 +288,7 @@ For now we're adding as we go:
 - Activating tray menus causes running clock display to not show updates
 	until Help, About, Settings etc are selected
 	- But clock does continue to run, fix to run systray, settings etc in parallel
+- Font type settings in preferences are currently ignored, the app uses system theme defaults. (Future planned update)
 - Settings changes to background and clock default times are saved immediately.
 	- but clock time format size and color, date size and color and background do
 	not currently refresh to new settings - exit and rerun for now
@@ -314,11 +318,13 @@ Software and the additional terms above
 Settings contains defaults as below, which can be modified, and also reset to defaults:
 {"bgcolor.default":"0,143,251,255",
 "color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800",
-"datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,
-"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,
-"showhr12.default":1,"showseconds.default":1,"showtimezone.default":1,"showutc.default":1,
-"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,
-"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
+"datecolor.default":"131,222,74,255","datefont.default":"arial",
+"datesize.default":24,"hourchime.default":1,
+"hourchimesound.default":"cuckoo.mp3","showdate.default":1,
+"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,
+"showutc.default":1,"startclock.default":0,"timecolor.default":"255,123,31,255",
+"timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255",
+"utcfont.default":"arial","utcsize.default":18}
 
 TaniumClock looks for directories named Resources/Images and Resources/Sounds,
 containing images and sounds.
@@ -436,9 +442,14 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		now = time.Now()
 		if now.Minute() == 0 && now.Second() == 0 {
 			if hourchime == 1 {
-				playMp3(sndDir + "/" + hourchimesound)
+				if !checkFileExists(sndDir + "/" + hourchimesound) {
+					playBeep("updown")
+				} else {
+					playMp3(sndDir + "/" + hourchimesound)
+				}
 			}
 		}
+
 		nowtime.Text = now.Format(timeFormat)
 		nowtime.Refresh()
 		nowdate.Refresh()
@@ -452,7 +463,14 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 	updateClock()
 	go func() {
 		for range time.Tick(time.Second) {
-			updateClock()
+			// updating frequently is something of a resource hog (CPU)
+			// check here if seconds are displayed, update
+			// if seconds are not displayed, check for seconds == 0
+			// at the minute change, and only update the clock then
+			now = time.Now()
+			if showseconds == 1 || now.Second() == 0 {
+				updateClock()
+			}
 		}
 	}()
 
@@ -465,6 +483,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
 
 // To-do:
+// - modify to use less resources when seconds are not displayed, first pass, wait for seconds == 0, then update once a minute only
+
 // clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
 // clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
 

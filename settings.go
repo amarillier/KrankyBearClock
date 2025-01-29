@@ -28,7 +28,8 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	} else {
 		settings = a.NewWindow(clockName + ": Settings")
 		settingsText := `All updates are applied / saved immediately.
-	Note: settings do not currently auto refresh, restart is required.`
+	Note: settings do not currently auto refresh, restart is required.
+	Displaying seconds can be much more CPU intensive than not!`
 		setText := widget.NewLabel(settingsText)
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 
@@ -302,7 +303,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				log.Println("preferences reset to defaults")
 			}
 			writeDefaultSettings(a)
-			showsec.SetChecked(true)
+			showsec.SetChecked(false)
 			showtz.SetChecked(true)
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
@@ -447,7 +448,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 
 func writeDefaultSettings(a fyne.App) {
 	// write default prefs that can be modified via settings
-	a.Preferences().SetInt("showseconds.default", 1)
+	a.Preferences().SetInt("showseconds.default", 0)
 	a.Preferences().SetInt("showtimezone.default", 1)
 	a.Preferences().SetInt("showutc.default", 1)
 	a.Preferences().SetInt("showdate.default", 1)
