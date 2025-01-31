@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"net/url"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/itchyny/volume-go"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -59,9 +62,20 @@ var startclock int
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
 // ~\AppData\Roaming\fyne\com.tanium.taniumclock\preferences.json
-// {"bgcolor.default":"0,143,251,255","color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800","datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,"showhr12.default":1,"showseconds.default":1,"showtimezone.default":1,"showutc.default":1,"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
+// {"bgcolor.default":"0,143,251,255","color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800","datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,"showutc.default":1,"startclock.default":0,"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
 
 func main() {
+	muted, err := volume.GetMuted()
+	if err != nil {
+		log.Fatalf("get muted failed: %+v", err)
+	}
+	fmt.Println("muted: ", muted)
+	vol, err := volume.GetVolume()
+	if err != nil {
+		log.Fatalf("get volume failed: %+v", err)
+	}
+	fmt.Printf("current volume: %d\n", vol)
+
 	exePath, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -272,7 +286,9 @@ func main() {
 				hlpText += "\n" + clockCopyright
 				hlpText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
 
-				plnText := `- Open with clock window focused
+				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
+	- Plan for user selectable hour / minute time to mute / unmute
+- Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumClock 
 - Add settings to allow:
@@ -394,7 +410,13 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		timeFormat += ` (MST)`
 	}
 
-	utcFormat := `(UTC 3:04 PM Z07)`
+	// Get the local time zone and offset
+	_, offset := now.Zone()
+	offsetHours := offset / 3600
+	offsetMinutes := (offset % 3600) / 60
+	offsetString := fmt.Sprintf("local is  %+02d:%02d", offsetHours, offsetMinutes)
+	// utcFormat := `(UTC 3:04 PM Z07)`
+	utcFormat := `UTC 3:04 PM  (` + offsetString + `)`
 	dateFormat := ` Monday, January 2, 2006 `
 
 	// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
@@ -442,11 +464,15 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		now = time.Now()
 		if now.Minute() == 0 && now.Second() == 0 {
 			if hourchime == 1 {
+				// https://github.com/sindresorhus/do-not-disturb
+				// this does not work, checking for options
+				// if doNotDisturb.Get == false {
 				if !checkFileExists(sndDir + "/" + hourchimesound) {
 					playBeep("updown")
 				} else {
 					playMp3(sndDir + "/" + hourchimesound)
 				}
+				// }
 			}
 		}
 
@@ -455,7 +481,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		nowdate.Refresh()
 		nowdate.Text = now.Format(dateFormat)
 		if showutc == 1 {
-			utctime.Text = now.Format(utcFormat)
+			utc := now.UTC()
+			utctime.Text = utc.Format(utcFormat)
 			utctime.Refresh()
 		}
 	}
@@ -483,8 +510,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
 
 // To-do:
-// - modify to use less resources when seconds are not displayed, first pass, wait for seconds == 0, then update once a minute only
 
+// notes, format info
 // clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
 // clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
 

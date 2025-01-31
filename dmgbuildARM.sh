@@ -24,4 +24,5 @@ create-dmg \
   # --add-file TaniumClock.app ./TaniumClock.app
   # "./"
 
-    ./setIcon.sh TaniumClock.png TaniumClockARM.dmg
+  ./setIcon.sh TaniumClock.png TaniumClockARM.dmg
+   cp TaniumClockARM.dmg installers

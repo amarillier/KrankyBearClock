@@ -23,6 +23,7 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 
 - Known problems - needs OpenGL drivers on some Windows
 - Possibly add one or more clock alarms - one time, recurring etc.
+- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 
 # Info for compiling / modifying
 
@@ -42,6 +43,10 @@ go get -u github.com/gopxl/beep/v2
 go get -u github.com/gopxl/beep/mp3
 
 go get -u github.com/gopxl/beep/v2/mid
+
+go get github.com/spiretechnology/go-autostart/v2@v2.0.0
+
+go get -u github.com/itchyny/volume-go
 
 Occasionally go mod vendor to resolve problems
 or for: build constraints exclude all Go files in ....
@@ -64,9 +69,6 @@ brew install mingw-w64
 
 # audio (mp3 / wav / midi) player
 https://github.com/gopxl/beep
-
-# beeep - prefer gopxl beep over this: https://pkg.go.dev/github.com/gen2brain/beeep#section-readme
-https://pkg.go.dev/github.com/gen2brain/beeep#Alert
 
 
 

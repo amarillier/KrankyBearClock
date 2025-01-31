@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+
 	"github.com/spiretechnology/go-autostart/v2"
 )
 
@@ -135,6 +136,13 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			a.Preferences().SetString("hourchimesound.default", hourchimesound)
 		})
+		/*
+			mutevol := xwidget.NewCalendar(time.Now(), func(selectedTime time.Time) {
+
+				// Handle selected time here
+				fmt.Println("Selected time:", selectedTime)
+			})
+		*/
 		startatboot := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
 				log.Println("startatboot set to", value)
@@ -385,6 +393,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Auto Start at Boot", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
+			// widget.NewFormItem("Mute Volume", mutevol),
 		)
 
 		tcbutton := widget.NewButton("Time Color", func() {
