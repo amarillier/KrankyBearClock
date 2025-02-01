@@ -290,6 +290,7 @@ func main() {
 
 				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 	- Plan for user selectable hour / minute time to mute / unmute
+- Allow settings set/save window locations to open clock
 - Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumClock 
