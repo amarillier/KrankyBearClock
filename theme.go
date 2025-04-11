@@ -1,9 +1,8 @@
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumClock.svg
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumClock.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcn.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcbe.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcc.png
 
-///go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrayClockIcon.svg
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/boing.mp3
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Basso.mp3
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Sosumi.mp3
@@ -43,3 +42,5 @@ func themeTimer(text *widget.RichText, time int) {
 	}
 	text.Refresh()
 }
+
+// "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

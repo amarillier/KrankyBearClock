@@ -4,6 +4,8 @@
 
 # go build .
 GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
+# set executable icon
+./setIcon.sh TaniumClock.png bin/MacOSAMD64/TaniumClock
 
 cp bin/MacOSAMD64/TaniumClock TaniumClock.app/Contents/MacOS
 
@@ -23,5 +25,12 @@ create-dmg \
   # --add-file TaniumClock.app ./TaniumClock.app
   # "./"
 
+# set dmg icon
 ./setIcon.sh TaniumClock.png TaniumClockIntel.dmg
+if [ ! -d installers ]
+then
+  mkdir installers
+fi
 cp TaniumClockIntel.dmg installers
+
+# "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

@@ -84,13 +84,10 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	var eggvol = 20
 
 	certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
-	rand.Seed(time.Now().UnixNano())
 	randomIndex := rand.Intn(len(certs))
 	egg := a.NewWindow(clockName + ": easter egg")
+	egg.SetIcon(resourceTaniumClockPng)
 	eggimage := canvas.NewImageFromResource(certs[randomIndex])
-	// eggimage := canvas.NewImageFromResource(resourceTCNSvg)
-	// eggimage := canvas.NewImageFromResource(resourceTcnPng)
-
 	eggimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found the Easter egg!\n"
 	text += "\n" + dadjoke()
@@ -143,8 +140,6 @@ func listMatchingFiles(directory, pattern string) ([]string, error) {
 }
 
 func dadjoke() string {
-	rand.Seed(time.Now().UnixNano())
-
 	// Define an array of jokes
 	jokes := []string{
 		"We're having Himalayan rabbit stew for dinner.\nI found Him a-layin in the middle of the road",
@@ -158,6 +153,18 @@ func dadjoke() string {
 		"Why can't humans hear a dog whistle?\nBecause a dog can't whistle",
 		"What is a dog's favorite form of transport?\nA waggin",
 		"Lemoncello? Over in the clearance corner because nobody could get any good notes from it",
+		"What's a forklift?\nUsually, food",
+		"Did you know you can wear a canoe as a hat?\nIf you turn it over, it is capsized",
+		"Eucaplyptus is the only plant named for what it would say after you prune it",
+		"I was going to tell a time traveling joke, but you didn't like it",
+		"Why did the chicken join a band?\nBecause it had the drumsticks",
+		"Why did the scarecrow win an award?\nBecause he was outstanding in his field",
+		"Why don't skeletons fight each other?\nThey don't have the guts",
+		"I was going to tell a chemistry joke, but I knew I wouldn't get a reaction",
+		"Why don't scientists trust atoms?\nBecause they make up everything",
+		"What do you call fake spaghetti?\nAn impasta",
+		"Why did the math book look sad?\nBecause it had too many problems",
+		"I was going to cook alligator tonight, but I only have a crocpot",
 	}
 	randomIndex := rand.Intn(len(jokes))
 	joke := jokes[randomIndex]

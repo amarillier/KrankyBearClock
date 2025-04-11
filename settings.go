@@ -8,26 +8,28 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/cmd/fyne_settings/settings"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
 	"github.com/spiretechnology/go-autostart/v2"
 )
 
 var fileButton *widget.Button
 var selectedFile *widget.Label
 var fileURI fyne.URI
-var settings fyne.Window
+var settingsc fyne.Window
+var settingsth fyne.Window
 var mycolor color.Color
 
-func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
+func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
-	if settings != nil { // &&  !settings.Content().Visible() {
-		settings.RequestFocus()
+	if settingsc != nil { // &&  !settings.Content().Visible() {
+		settingsc.RequestFocus()
 	} else {
-		settings = a.NewWindow(clockName + ": Settings")
+		settingsc = a.NewWindow(clockName + ": Settings")
+		settingsc.SetIcon(resourceTaniumClockPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: settings do not currently auto refresh, restart is required.
 	Displaying seconds can be much more CPU intensive than not!`
@@ -337,8 +339,8 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		reset.Importance = widget.SuccessImportance // green
 		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
 		close := widget.NewButton("Close settings", func() {
-			settings.Close()
-			settings = nil
+			settingsc.Close()
+			settingsc = nil
 		})
 		close.Importance = widget.WarningImportance // orange
 		buttonRow := container.NewCenter(container.NewHBox(container.NewCenter(reset), container.NewCenter(close)))
@@ -397,13 +399,13 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		)
 
 		tcbutton := widget.NewButton("Time Color", func() {
-			tcolor := colorPicker(settings, "time", a)
+			tcolor := colorPicker(settingsc, "time", a)
 			if debug == 1 {
 				fmt.Println("tcolor:", tcolor)
 			}
 		})
 		bgbutton := widget.NewButton("Background Color", func() {
-			bcolor := colorPicker(settings, "background", a)
+			bcolor := colorPicker(settingsc, "background", a)
 			if debug == 1 {
 				fmt.Println("bcolor:", bcolor)
 			}
@@ -415,7 +417,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			tcbutton,
 			bgbutton)
 		dcbutton := widget.NewButton("Date Color", func() {
-			dcolor := colorPicker(settings, "date", a)
+			dcolor := colorPicker(settingsc, "date", a)
 			if debug == 1 {
 				fmt.Println("dcolor:", dcolor)
 			}
@@ -426,7 +428,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			dincrease,
 			dcbutton)
 		ucbutton := widget.NewButton("UTC Time Color", func() {
-			ucolor := colorPicker(settings, "utc", a)
+			ucolor := colorPicker(settingsc, "utc", a)
 			if debug == 1 {
 				fmt.Println("ucolor:", ucolor)
 			}
@@ -443,17 +445,76 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("UTC size", uwidget),
 		)
 
-		settings.Resize(fyne.NewSize(500, 300))
+		settingsc.Resize(fyne.NewSize(500, 300))
 		// settings.CenterOnScreen() // run centered on primary (laptop) display
-		settings.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
+		settingsc.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
 		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
-		settings.SetCloseIntercept(func() {
-			settings.Close()
-			settings = nil
+		settingsc.SetCloseIntercept(func() {
+			settingsc.Close()
+			settingsc = nil
 		})
-		settings.Show()
+		settingsc.Show()
 	}
 }
+
+func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
+	// allow modifying the fyne theme
+	// this is dependent on fyne_settings in ~/go/pkg/mod/fyne.io/fyne/v2/cmd/fyne_settings/settings
+	// but here I use a customized version to add a button 'Apply & Close'
+	// modify as shown below
+	if settingsth != nil { // &&  !settingsc.Content().Visible() {
+		settingsth.RequestFocus()
+	} else {
+		s := settings.NewSettings()
+		settingsth = a.NewWindow(clockName + ": Theme Settings")
+		settingsth.SetIcon(resourceTaniumClockPng)
+
+		appearance := s.LoadAppearanceScreen(w)
+		tabs := container.NewAppTabs(
+			&container.TabItem{Text: "Theme Appearance - affects all fyne based apps", Icon: s.AppearanceIcon(), Content: appearance})
+		tabs.SetTabLocation(container.TabLocationLeading)
+		settingsth.SetContent(tabs)
+
+		settingsth.Resize(fyne.NewSize(520, 520))
+		settingsth.CenterOnScreen() // run centered on primary (laptop) display
+		settingsth.Show()
+		settingsth.SetCloseIntercept(func() {
+			settingsth.Close()
+			settingsth = nil
+		})
+	}
+}
+
+// modify the latest ~/go/pkg/mod/fyne.io/fyne/v2/cmd/fyne_settings/settings/appearance.go
+
+// add to function LoadAppearanceScreen last part with Apply & Close button:
+/*
+bottom := container.NewHBox(layout.NewSpacer(),
+		&widget.Button{Text: "Apply", Importance: widget.HighImportance, OnTapped: func() {
+			if s.fyneSettings.Scale == 0.0 {
+				s.chooseScale(1.0)
+			}
+			err := s.save()
+			if err != nil {
+				fyne.LogError("Failed on saving", err)
+			}
+
+			s.appliedScale(s.fyneSettings.Scale)
+		}},
+		&widget.Button{Text: "Apply & Close", Importance: widget.WarningImportance, OnTapped: func() {
+			if s.fyneSettings.Scale == 0.0 {
+				s.chooseScale(1.0)
+			}
+			err := s.save()
+			if err != nil {
+				fyne.LogError("Failed on saving", err)
+			}
+
+			s.appliedScale(s.fyneSettings.Scale)
+			w.Close()
+		}},
+	)
+*/
 
 func writeDefaultSettings(a fyne.App) {
 	// write default prefs that can be modified via settings

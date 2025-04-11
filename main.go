@@ -26,7 +26,7 @@ import (
 
 const (
 	clockName      = "Tanium Clock"
-	clockVersion   = "0.3" // see FyneApp.toml
+	clockVersion   = "0.3.1" // see FyneApp.toml
 	clockCopyright = "(c) Tanium, 2024"
 	clockAuthor    = "Allan Marillier"
 )
@@ -66,14 +66,14 @@ var startclock int
 
 func main() {
 	muted, err := volume.GetMuted()
-	if err != nil {
-		log.Fatalf("get muted failed: %+v", err)
-	}
+	//if err != nil {
+	//	log.Fatalf("get muted failed: %+v", err)
+	//}
 	fmt.Println("muted: ", muted)
 	vol, err := volume.GetVolume()
-	if err != nil {
-		log.Fatalf("get volume failed: %+v", err)
-	}
+	//if err != nil {
+	//	log.Fatalf("get volume failed: %+v", err)
+	//}
 	fmt.Printf("current volume: %d\n", vol)
 
 	exePath, err := os.Executable()
@@ -97,6 +97,7 @@ func main() {
 
 	a := app.NewWithID("com.tanium.TaniumClock")
 	c := a.NewWindow(clockName)
+	c.SetIcon(resourceTaniumClockPng)
 
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	c.SetPadded(false)
@@ -223,9 +224,6 @@ func main() {
 	}
 
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceTaniumClockSvg)
-		systray.SetTooltip(clockName)
-		// systray.SetTitle(clockName)
 		show := fyne.NewMenuItem("Show", func() {
 			c.Show()
 			c.Canvas().Focused()
@@ -236,10 +234,11 @@ func main() {
 			aboutText += "\n" + clockCopyright
 			aboutText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
-			aboutText += "\nAnd looking about too much might expose an easter egg!"
+			aboutText += "\nAnd looking about about and help too much might expose an easter egg!"
 
 			if abt == nil || !abt.Content().Visible() {
 				abt = a.NewWindow(clockName + ": About")
+				abt.SetIcon(resourceTaniumClockPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetCloseIntercept(func() {
@@ -249,6 +248,7 @@ func main() {
 				// abt.CenterOnScreen() // run centered on primary (laptop) display
 				abt.Show()
 			} else {
+				abt.Show()
 				easterEgg(a, abt)
 			}
 		})
@@ -256,6 +256,7 @@ func main() {
 			// if hlp != nil { // &&  !hlp.Content().Visible() {
 			if hlp == nil || !hlp.Content().Visible() {
 				hlp = a.NewWindow(clockName + ": Help")
+				hlp.SetIcon(resourceTaniumClockPng)
 
 				hlp.SetCloseIntercept(func() {
 					hlp.Close()
@@ -290,7 +291,9 @@ func main() {
 
 				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 	- Plan for user selectable hour / minute time to mute / unmute
-- Allow settings set/save window locations to open clock
+- Allow settings set/save window locations to open clock, 
+	unfortunately not implemented in the fyne library yet
+- Possible multiple time zones for clock, hh:mm only + offset
 - Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumClock 
@@ -381,17 +384,39 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 				// hlp.CenterOnScreen() // run centered on primary (laptop) display
 				hlp.Show()
 			} else {
+				hlp.Show()
 				easterEgg(a, hlp)
 			}
 		})
-		settings := fyne.NewMenuItem("Settings", func() {
-			makeSettings(a, c, bg)
+		settingsClock := fyne.NewMenuItem("Settings (Clock)", func() {
+			makeSettingsClock(a, c, bg)
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, help, settings)
+		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
+			makeSettingsTheme(a, c, bg)
+		})
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, help, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
+		desk.SetSystemTrayIcon(resourceTaniumClockPng)
 		systray.SetTooltip(clockName)
 		// systray.SetTitle(clockName)
-		//}
+
+		// Menu items
+		// compile / run with syntax below to force Mac to do menus like Windows
+		// otherwise menus will be at the top of the display
+		// https://github.com/fyne-io/fyne/issues/3988
+		// go build -tags no_native_menus .
+		// go run -tags no_native_menus .
+		quit := fyne.NewMenuItem("Quit", func() {
+			a.Quit()
+		})
+		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
+		newMenuHelp := fyne.NewMenu("Help", about, help)
+		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTheme)
+		// New main menu
+		cmenu := fyne.NewMainMenu(newMenuOps, newMenuHelp, newMenuSettings)
+		// setup main menu
+		c.SetMainMenu(cmenu)
+		// cmenu.Refresh()
 	}
 
 	now := time.Now()
@@ -417,9 +442,9 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 	_, offset := now.Zone()
 	offsetHours := offset / 3600
 	offsetMinutes := (offset % 3600) / 60
-	offsetString := fmt.Sprintf("local is  %+02d:%02d", offsetHours, offsetMinutes)
+	offsetString := fmt.Sprintf(" (local is  %+02d:%02d)", offsetHours, offsetMinutes)
 	// utcFormat := `(UTC 3:04 PM Z07)`
-	utcFormat := `UTC 3:04 PM  (` + offsetString + `)`
+	utcFormat := `UTC 3:04 PM`
 	dateFormat := ` Monday, January 2, 2006 `
 
 	// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
@@ -485,7 +510,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		nowdate.Text = now.Format(dateFormat)
 		if showutc == 1 {
 			utc := now.UTC()
-			utctime.Text = utc.Format(utcFormat)
+			utctime.Text = utc.Format(utcFormat) + offsetString
 			utctime.Refresh()
 		}
 	}
