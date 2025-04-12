@@ -24,7 +24,6 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 
 - Known problems - needs OpenGL drivers on some Windows
 - Possibly add one or more clock alarms - one time, recurring etc.
-- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 
 # Info for compiling / modifying
 

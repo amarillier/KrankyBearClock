@@ -25,12 +25,12 @@ import (
 )
 
 const (
-	clockName      = "Tanium Clock"
-	clockVersion   = "0.3.1" // see FyneApp.toml
-	clockCopyright = "(c) Tanium, 2024"
-	clockAuthor    = "Allan Marillier"
+	clockName    = "Tanium Clock"
+	clockVersion = "0.3.2" // see FyneApp.toml
+	clockAuthor  = "Allan Marillier"
 )
 
+var clockCopyright = "(c) Tanium, 2024-" + strconv.Itoa(time.Now().Year())
 var imgDir string
 var clockbg string // future optional clock background image
 
@@ -46,6 +46,12 @@ var showdate int
 var showutc int
 var showhr12 int
 var hourchime int
+var automute int
+var currentvolume int
+var muteonhr int
+var muteonmin int
+var muteoffhr int
+var muteoffmin int
 var bgcolor string
 var timecolor string
 var datecolor string
@@ -65,17 +71,6 @@ var startclock int
 // {"bgcolor.default":"0,143,251,255","color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800","datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,"showutc.default":1,"startclock.default":0,"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
 
 func main() {
-	muted, err := volume.GetMuted()
-	//if err != nil {
-	//	log.Fatalf("get muted failed: %+v", err)
-	//}
-	fmt.Println("muted: ", muted)
-	vol, err := volume.GetVolume()
-	//if err != nil {
-	//	log.Fatalf("get volume failed: %+v", err)
-	//}
-	fmt.Printf("current volume: %d\n", vol)
-
 	exePath, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -121,6 +116,11 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	automute = a.Preferences().IntWithFallback("automute.default", 0)
+	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
+	muteonmin = a.Preferences().IntWithFallback("muteonmin.default", 0)
+	muteoffhr = a.Preferences().IntWithFallback("muteoffhr.default", 8)
+	muteoffmin = a.Preferences().IntWithFallback("muteoffmin.default", 0)
 	hourchime = a.Preferences().IntWithFallback("hourchime.default", 1)
 	bgcolor = a.Preferences().StringWithFallback("bgcolor.default", "0,143,251,255")      // blue
 	timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255") // orange
@@ -289,11 +289,10 @@ func main() {
 				hlpText += "\n" + clockCopyright
 				hlpText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
 
-				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
-	- Plan for user selectable hour / minute time to mute / unmute
+				plnText := `- Allow multiple time zones for clock, hh:mm only + offset
+- Allow multiple alarm times with user selectable tones for each
 - Allow settings set/save window locations to open clock, 
 	unfortunately not implemented in the fyne library yet
-- Possible multiple time zones for clock, hh:mm only + offset
 - Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumClock 
@@ -325,9 +324,9 @@ func main() {
 Please take a moment to read the license agreement:
  
 In addition, please note that:
-TaniumClock is intended for internal Tanium use, however no proprietary
+This application is intended for internal Tanium use, however no proprietary
 information or features are included, so pending Tanium legal and other 
-approvals this application may be made available to others. TaniumClock
+approvals this application may be made available to others. This application
 provides no guarantees as to stability of operations or suitability for any
 purpose, but every attempt has been made to make this application reliable.
 
@@ -490,17 +489,31 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 
 	updateClock := func() {
 		now = time.Now()
+		if now.Hour() == muteonhr && now.Minute() == muteonmin && now.Second() == 0 {
+			if automute == 1 {
+				muted, _ := volume.GetMuted()
+				if !muted {
+					currentvolume, _ = volume.GetVolume()
+					volume.Mute()
+				}
+			}
+		} else if now.Hour() == muteoffhr && now.Minute() == muteoffmin && now.Second() == 0 {
+			if automute == 1 {
+				muted, _ := volume.GetMuted()
+				if muted {
+					volume.Unmute()
+					// volume.SetVolume(20)
+					volume.SetVolume(currentvolume)
+				}
+			}
+		}
 		if now.Minute() == 0 && now.Second() == 0 {
 			if hourchime == 1 {
-				// https://github.com/sindresorhus/do-not-disturb
-				// this does not work, checking for options
-				// if doNotDisturb.Get == false {
 				if !checkFileExists(sndDir + "/" + hourchimesound) {
 					playBeep("updown")
 				} else {
 					playMp3(sndDir + "/" + hourchimesound)
 				}
-				// }
 			}
 		}
 
