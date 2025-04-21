@@ -2,9 +2,12 @@
 ID = "com.tanium.TaniumClock"
 Name = "Tanium Clock"
 Creator = "Allan Marillier"
-Version = "0.3.2"
+Version = "0.3.3"
 Build = 1
 Icon = "TaniumClock.png"
+
+[Migrations]
+  fyneDo = true
 
 [Development]
   HelperText = "This binary was built with debug symbols"

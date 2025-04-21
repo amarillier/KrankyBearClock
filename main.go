@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IamFaizanKhalid/lock"
 	"github.com/itchyny/volume-go"
 
 	"fyne.io/fyne/v2"
@@ -26,7 +27,7 @@ import (
 
 const (
 	clockName    = "Tanium Clock"
-	clockVersion = "0.3.2" // see FyneApp.toml
+	clockVersion = "0.3.3" // see FyneApp.toml
 	clockAuthor  = "Allan Marillier"
 )
 
@@ -36,8 +37,13 @@ var clockbg string // future optional clock background image
 
 var sndDir string
 var debug int = 0
+var clock fyne.Window
+var settingsc fyne.Window
+var settingsth fyne.Window
 var abt fyne.Window
 var hlp fyne.Window
+
+// var egg fyne.Window
 var bg fyne.Canvas
 
 var showseconds int
@@ -46,6 +52,8 @@ var showdate int
 var showutc int
 var showhr12 int
 var hourchime int
+var slockmute int
+var clockmutedvol int
 var automute int
 var currentvolume int
 var muteonhr int
@@ -91,16 +99,15 @@ func main() {
 	}
 
 	a := app.NewWithID("com.tanium.TaniumClock")
-	c := a.NewWindow(clockName)
-	c.SetIcon(resourceTaniumClockPng)
-
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
-	c.SetPadded(false)
-	c.SetCloseIntercept(func() {
-		a.Quit() // force quit, normal when somebody hits "x" to close
-	})
-	c.SetMaster() // this sets this as master and closes all child windows
-	// c.CenterOnScreen() // run centered on primary (laptop) display
+	clock = a.NewWindow(clockName)
+	clock.SetIcon(resourceTaniumClockPng)
+	clock.SetPadded(false)
+	//clock.SetCloseIntercept(func() {
+	//	a.Quit() // force quit, normal when somebody hits "x" to close
+	//})
+	clock.SetMaster() // this sets this as master and closes all child windows
+	// clock.CenterOnScreen() // run centered on primary (laptop) display
 
 	prefs := strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
 	if !checkFileExists(prefs) {
@@ -116,6 +123,7 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	slockmute = a.Preferences().IntWithFallback("slockmute.default", 0)
 	automute = a.Preferences().IntWithFallback("automute.default", 0)
 	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
 	muteonmin = a.Preferences().IntWithFallback("muteonmin.default", 0)
@@ -136,6 +144,7 @@ func main() {
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
 	writeSettings(a)
 
+	clockmutedvol = 0
 	var tre, tgr, tbl, ta uint8
 	colors := strings.Split(timecolor, ",")
 	col, _ := strconv.ParseUint(colors[0], 10, 8)
@@ -208,6 +217,7 @@ func main() {
 			log.Println("showutc:", showutc)
 			log.Println("showhr12:", showhr12)
 			log.Println("hourchime:", hourchime)
+			log.Println("slockmute:", slockmute)
 			log.Println("bgcolor:", bgcolor)
 			log.Println("timecolor:", timecolor)
 			log.Println("datecolor:", datecolor)
@@ -225,16 +235,16 @@ func main() {
 
 	if desk, ok := a.(desktop.App); ok {
 		show := fyne.NewMenuItem("Show", func() {
-			c.Show()
-			c.Canvas().Focused()
+			clock.Show()
+			clock.Canvas().Focused()
 		})
-		hide := fyne.NewMenuItem("Hide", c.Hide)
+		hide := fyne.NewMenuItem("Hide", clock.Hide)
 		about := fyne.NewMenuItem("About", func() {
 			aboutText := clockName + " v " + clockVersion
 			aboutText += "\n" + clockCopyright
 			aboutText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
-			aboutText += "\nAnd looking about about and help too much might expose an easter egg!"
+			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
 
 			if abt == nil || !abt.Content().Visible() {
 				abt = a.NewWindow(clockName + ": About")
@@ -388,10 +398,10 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			}
 		})
 		settingsClock := fyne.NewMenuItem("Settings (Clock)", func() {
-			makeSettingsClock(a, c, bg)
+			makeSettingsClock(a, clock, bg)
 		})
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
-			makeSettingsTheme(a, c, bg)
+			makeSettingsTheme(a, clock, bg)
 		})
 		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, help, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
@@ -414,7 +424,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		// New main menu
 		cmenu := fyne.NewMainMenu(newMenuOps, newMenuHelp, newMenuSettings)
 		// setup main menu
-		c.SetMainMenu(cmenu)
+		clock.SetMainMenu(cmenu)
 		// cmenu.Refresh()
 	}
 
@@ -518,13 +528,17 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		}
 
 		nowtime.Text = now.Format(timeFormat)
-		nowtime.Refresh()
-		nowdate.Refresh()
+		fyne.Do(func() {
+			nowtime.Refresh()
+			nowdate.Refresh()
+		})
 		nowdate.Text = now.Format(dateFormat)
 		if showutc == 1 {
 			utc := now.UTC()
 			utctime.Text = utc.Format(utcFormat) + offsetString
-			utctime.Refresh()
+			fyne.Do(func() {
+				utctime.Refresh()
+			})
 		}
 	}
 
@@ -539,20 +553,39 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			if showseconds == 1 || now.Second() == 0 {
 				updateClock()
 			}
+			// lock screen / mute volume event handler, but only if enabled
+			// and only unmute if we auto muted. If user had already muted, don't
+			if slockmute == 1 {
+				if lock.IsScreenLocked() {
+					muted, _ := volume.GetMuted()
+					if !muted {
+						clockmutedvol = 1
+						volume.Mute()
+					}
+				} else {
+					lockmuted, _ := volume.GetMuted()
+					if lockmuted && clockmutedvol == 1 {
+						clockmutedvol = 0
+						volume.Unmute()
+					}
+				}
+			}
 		}
 	}()
 
-	c.SetContent(content)
-	c.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
-	// c.Resize(fyne.NewSize(300, 200))
-	c.ShowAndRun()
+	clock.SetContent(content)
+	clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
+	// clock.Resize(fyne.NewSize(300, 200))
+	clock.ShowAndRun()
+	// clock.Show() // for func inside TaniumTimer
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
 
 // To-do:
 
-// notes, format info
+// a few notes, format specific
+// timeFormat := `3:04:05 PM (MST)`
 // clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
 // clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
 

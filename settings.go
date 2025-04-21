@@ -21,8 +21,7 @@ import (
 var fileButton *widget.Button
 var selectedFile *widget.Label
 var fileURI fyne.URI
-var settingsc fyne.Window
-var settingsth fyne.Window
+var tselect fyne.Window
 var mycolor color.Color
 var muteonbutton *widget.Button
 var muteoffbutton *widget.Button
@@ -32,13 +31,14 @@ var muteofflabel string
 func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
 	if settingsc != nil { // &&  !settings.Content().Visible() {
-		settingsc.RequestFocus()
+		settingsc.Show()
+		teapot(a, settingsc)
 	} else {
 		settingsc = a.NewWindow(clockName + ": Settings")
 		settingsc.SetIcon(resourceTaniumClockPng)
 		settingsText := `All updates are applied / saved immediately.
-	Note: settings do not currently auto refresh, restart is required.
-	Displaying seconds can be much more CPU intensive than not!`
+	Note: clock display settings do not currently auto refresh, restart is required.
+	Displaying clock seconds can be much more CPU intensive than not!`
 		setText := widget.NewLabel(settingsText)
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 
@@ -65,8 +65,16 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			switch value {
 			case true:
 				showseconds = 1
+				// clock.Content().Refresh()
+				if debug == 1 {
+					fmt.Println("showseconds on")
+				}
 			case false:
 				showseconds = 0
+				// clock.Content().Refresh()
+				if debug == 1 {
+					fmt.Println("showseconds off")
+				}
 			}
 			a.Preferences().SetInt("showseconds.default", showseconds)
 		})
@@ -176,6 +184,18 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				autoClock.Disable()
 			}
 			a.Preferences().SetInt("startclock.default", startclock)
+		})
+		lockmute := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("slockmute set to", value)
+			}
+			switch value {
+			case true:
+				slockmute = 1
+			case false:
+				slockmute = 0
+			}
+			a.Preferences().SetInt("slockmute.default", slockmute)
 		})
 
 		tsz := widget.NewEntry()
@@ -329,6 +349,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
+			lockmute.SetChecked(false)
 			mute.SetChecked(false)
 			muteonhr = 20
 			muteonmin = 0
@@ -348,6 +369,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showut.Refresh()
 			showhr1224.Refresh()
 			startatboot.Refresh()
+			lockmute.Refresh()
 			mute.Refresh()
 			chime.Refresh()
 			chimesound.Refresh()
@@ -409,6 +431,11 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		} else {
 			startatboot.SetChecked(false)
 		}
+		if slockmute == 1 {
+			lockmute.SetChecked(true)
+		} else {
+			lockmute.SetChecked(false)
+		}
 
 		/*
 			background.Selected = timerbg
@@ -422,6 +449,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Auto Start at Boot", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
+			widget.NewFormItem("Lock Mute Volume", lockmute),
 			widget.NewFormItem("Auto Mute Volume", mute),
 		)
 		muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
@@ -498,6 +526,10 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingsc.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
 		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
 		settingsc.SetCloseIntercept(func() {
+			if tselect != nil {
+				tselect.Close()
+				tselect = nil
+			}
 			settingsc.Close()
 			settingsc = nil
 		})
@@ -511,7 +543,8 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// but here I use a customized version to add a button 'Apply & Close'
 	// modify as shown below
 	if settingsth != nil { // &&  !settingsc.Content().Visible() {
-		settingsth.RequestFocus()
+		settingsth.Show()
+		teapot(a, settingsth)
 	} else {
 		s := settings.NewSettings()
 		settingsth = a.NewWindow(clockName + ": Theme Settings")
@@ -572,6 +605,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", 1)
 	a.Preferences().SetInt("showhr12.default", 1)
 	a.Preferences().SetInt("hourchime.default", 1)
+	a.Preferences().SetInt("slockmute.default", 0)
 	a.Preferences().SetInt("automute.default", 0)
 	a.Preferences().SetInt("muteonhr.default", 20)
 	a.Preferences().SetInt("muteonmin.default", 0)
@@ -599,6 +633,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", showdate)
 	a.Preferences().SetInt("showhr12.default", showhr12)
 	a.Preferences().SetInt("hourchime.default", hourchime)
+	a.Preferences().SetInt("slockmute.default", slockmute)
 	a.Preferences().SetInt("automute.default", automute)
 	a.Preferences().SetInt("muteonhr.default", muteonhr)
 	a.Preferences().SetInt("muteonmin.default", muteonmin)
@@ -693,9 +728,9 @@ func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int
 		min = time.Now().Minute()
 	}
 
-	t := a.NewWindow("Select Time")
+	tselect = a.NewWindow("Select Time")
 	// Set window size to fit the input prompt
-	t.Resize(fyne.NewSize(250, 100))
+	tselect.Resize(fyne.NewSize(250, 100))
 
 	current = fmt.Sprintf("%02d:%02d", hr, min)
 
@@ -714,7 +749,8 @@ func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int
 		if isValidTime(selectedTime) {
 			endTime, _ := time.Parse("15:04", selectedTime)
 			messageLabel.SetText("Entered time: " + endTime.Format("15:04"))
-			t.Close()
+			tselect.Close()
+			tselect = nil
 			parts := strings.Split(selectedTime, ":")
 			hour, _ := strconv.Atoi(parts[0])
 			min, _ := strconv.Atoi(parts[1])
@@ -750,9 +786,9 @@ func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int
 		messageLabel,
 	)
 
-	t.SetContent(content)
-	// t.CenterOnScreen() // run centered on primary (laptop) display
-	t.Show()
+	tselect.SetContent(content)
+	// tselect.CenterOnScreen() // run centered on primary (laptop) display
+	tselect.Show()
 	return myTime
 }
 

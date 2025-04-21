@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TaniumClock"
-#define MyAppVersion "0.3.2"
+#define MyAppVersion "0.3.3"
 #define MyAppPublisher "Tanium Inc. (Allan Marillier), 2024-2025"
 #define MyAppURL "https://www.tanium.com/"
 #define MyAppExeName "TaniumClock.exe"
