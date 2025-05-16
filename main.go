@@ -26,12 +26,12 @@ import (
 )
 
 const (
-	clockName    = "Tanium Clock"
-	clockVersion = "0.3.3" // see FyneApp.toml
+	clockName    = "KrankyBear Clock"
+	clockVersion = "0.3.4" // see FyneApp.toml
 	clockAuthor  = "Allan Marillier"
 )
 
-var clockCopyright = "(c) Tanium, 2024-" + strconv.Itoa(time.Now().Year())
+var clockCopyright = "(c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var imgDir string
 var clockbg string // future optional clock background image
 
@@ -74,8 +74,8 @@ var hourchimesound string
 var startclock int
 
 // preferences stored via fyne preferences API land in
-// ~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
-// ~\AppData\Roaming\fyne\com.tanium.taniumclock\preferences.json
+// ~/Library/Preferences/fyne/com.KB.KrankyBearClock/preferences.json
+// ~\AppData\Roaming\fyne\com.KB.KrankyBearClock\preferences.json
 // {"bgcolor.default":"0,143,251,255","color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800","datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,"showutc.default":1,"startclock.default":0,"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
 
 func main() {
@@ -86,7 +86,7 @@ func main() {
 
 	launchDir := filepath.Dir(exePath)
 	if runtime.GOOS == "darwin" {
-		if strings.HasPrefix(launchDir, "/Applications/TaniumClock") {
+		if strings.HasPrefix(launchDir, "/Applications/KrankyBearClock") {
 			sndDir = launchDir + "/../Resources/Sounds"
 			imgDir = launchDir + "/../Resources/Images"
 		} else {
@@ -98,10 +98,10 @@ func main() {
 		imgDir = launchDir + "/Resources/Images"
 	}
 
-	a := app.NewWithID("com.tanium.TaniumClock")
+	a := app.NewWithID("com.KB.KrankyBearClock")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	clock = a.NewWindow(clockName)
-	clock.SetIcon(resourceTaniumClockPng)
+	clock.SetIcon(resourceKrankyBearClockPng)
 	clock.SetPadded(false)
 	//clock.SetCloseIntercept(func() {
 	//	a.Quit() // force quit, normal when somebody hits "x" to close
@@ -194,7 +194,7 @@ func main() {
 		if os.Args[1] == "debug" || os.Args[1] == "d" {
 			debug = 1
 			logInit()
-			r, _ := os.Open("TaniumClock0.txt")
+			r, _ := os.Open("KrankyBearClock0.txt")
 			logLines, _ := lineCounter(r)
 			r.Close()
 			InfoLog.Println("logLines:", logLines)
@@ -248,7 +248,7 @@ func main() {
 
 			if abt == nil || !abt.Content().Visible() {
 				abt = a.NewWindow(clockName + ": About")
-				abt.SetIcon(resourceTaniumClockPng)
+				abt.SetIcon(resourceKrankyBearClockPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetCloseIntercept(func() {
@@ -266,7 +266,7 @@ func main() {
 			// if hlp != nil { // &&  !hlp.Content().Visible() {
 			if hlp == nil || !hlp.Content().Visible() {
 				hlp = a.NewWindow(clockName + ": Help")
-				hlp.SetIcon(resourceTaniumClockPng)
+				hlp.SetIcon(resourceKrankyBearClockPng)
 
 				hlp.SetCloseIntercept(func() {
 					hlp.Close()
@@ -305,7 +305,7 @@ func main() {
 	unfortunately not implemented in the fyne library yet
 - Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
-	- To run more than one simultaneously, in terminal: open -n -a TaniumClock 
+	- To run more than one simultaneously, in terminal: open -n -a KrankyBearClock 
 - Add settings to allow:
 	- clock text font
 	- day text font
@@ -323,26 +323,25 @@ func main() {
 - Settings changes to background and clock default times are saved immediately.
 	- but clock time format size and color, date size and color and background do
 	not currently refresh to new settings - exit and rerun for now
-	`
-				link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
+`
+				link, err := url.Parse("https://github.com/amarillier/KrankyBearClock/blob/main/license.txt")
 				if err != nil {
 					fyne.LogError("Could not parse URL", err)
 				}
-				hyperlink := widget.NewHyperlink("https://www.tanium.com/end-user-license-agreement-policy", link)
+				hyperlink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearClock/blob/main/license.txt", link)
 				hyperlink.Alignment = fyne.TextAlignLeading
-				licText := `TaniumClock is “Beta Software” as defined in the license agreement found at the link below. 
-Please take a moment to read the license agreement:
+
+				licText := `KrankyBearClock is FREE Software” as defined in the license agreement below. 
  
-In addition, please note that:
-This application is intended for internal Tanium use, however no proprietary
-information or features are included, so pending Tanium legal and other 
-approvals this application may be made available to others. This application
+This application is "FREE Software". 
+
+This application is intended for any use by any individual, in any organization. This application
 provides no guarantees as to stability of operations or suitability for any
 purpose, but every attempt has been made to make this application reliable.
 
 Using this application (and reading this text) is considered acceptance of
-the terms of the License Agreement, and acknowledgement that this is Beta
-Software and the additional terms above
+the terms of the License Agreement, and acknowledgement that this is FREE
+Software and the additional terms above.
 `
 
 				settingsText := `Settings are a separate tray menu item
@@ -357,13 +356,11 @@ Settings contains defaults as below, which can be modified, and also reset to de
 "timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255",
 "utcfont.default":"arial","utcsize.default":18}
 
-TaniumClock looks for directories named Resources/Images and Resources/Sounds,
+KrankyBearClock looks for directories named Resources/Images and Resources/Sounds,
 containing images and sounds.
 
 IMAGES:
-Background blue refers to a compiled in resource with Tanium blue background. 
-Other supported compiled in backgrounds are: stone, almond, converge24 and converge24a
-Future additions will allow selecting images of your choice, png, SVG,
+Future additions will allow selecting background images of your choice, png, SVG,
 	jpg maybe and specifying size - height / width. Manual window resizing
 	is already possible
 
@@ -373,7 +370,7 @@ Built in tones include 'ding', 'down', 'up', and 'updown'. These are always avai
 The sounds directory as distributed also contains a number of other .mp3 files
 including baseball.mp3, grandfatherclock.mp3, hero.mp3, pinball.mp3, sosumi.mp3
 When selecting sounds, the sound will be played as a preview when possible.
-When selected sounds are not present (removed from Sounds), TaniumClock defaults
+When selected sounds are not present (removed from Sounds), KrankyBearClock defaults
 	to playing built in tones ding, down, up or updown
 Future additions will allow also choosing from any .mid or .wav sound files of your
 	choice if located in the Sounds directory
@@ -405,7 +402,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		})
 		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, help, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceTaniumClockPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearClockPng)
 		systray.SetTooltip(clockName)
 		// systray.SetTitle(clockName)
 
@@ -577,7 +574,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 	clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
 	// clock.Resize(fyne.NewSize(300, 200))
 	clock.ShowAndRun()
-	// clock.Show() // for func inside TaniumTimer
+	// clock.Show() // for func inside KrankyBearTimer
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

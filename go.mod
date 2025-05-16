@@ -1,4 +1,4 @@
-module TaniumClock
+module KrankyBearClock
 
 go 1.23.2
 

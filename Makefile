@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := hello
 
 hello:
-	echo "Hello Tanium!"
+	echo "Hello KrankyBear!"
 	echo "make fmt to format the code"
 	echo "make lint to run golint"
 	echo "make vet to vet the code"
@@ -17,7 +17,7 @@ hello:
 	echo "make clean to remove compiled files from bin/*"
 	echo "make doc to generate some docs based on func names"
 	echo "  grepped | tee doc.md, on display and in file"
-.PHONY:tanium
+.PHONY:hello
 
 fmt:
 	go fmt ./...
@@ -37,7 +37,9 @@ run:
 
 # Supported cross compile GOOS and GOARCH https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
 build:
-	go build -ldflags="-w -s" -o TaniumClock .
+	./setver.sh
+	go build -ldflags="-w -s" -o KrankyBearClock .
+	./setIcon.sh KrankyBearClock.png KrankyBearClock
 .PHONY:build
 
 
@@ -59,12 +61,12 @@ macosarm64:
 
 winamd64:
 	go-winres make
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r TaniumClock.rc" -o bin/WinAMD64/
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r KrankyBearClock.rc" -o bin/WinAMD64/
 .PHONY:winamd64
 
 winarm64:
 	go-winres make
-	GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r TaniumClock.rc" -o bin/WinARM64/
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r KrankyBearClock.rc" -o bin/WinARM64/
 .PHONY:winarm64
 
 

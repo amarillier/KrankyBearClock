@@ -1,0 +1,39 @@
+Release notes
+
+0.3.4 NEXT
+- Added release notes
+-
+- Add "days until ..." calculation, optional display via settings
+- Add optional extra time zones to display
+- Add optional alarms similar to phone - one time, repeat interval
+- Possible add API to get current location temperature?
+- Possible add update checker
+
+
+0.3.3 
+- Convert fyne 2.5 to 2.6.0 (better / lower resource use)
+- optional mute when screen locked
+- add theme settings (light / dark)
+- fix Inno setup to not install with autostart at boot enabled
+- improve system tray / menu bar for both MacOS and Windows
+
+
+0.3.2
+- optional user selectable time clock chime auto mute / unmute setting
+- small improvements
+
+
+0.3.1 
+- add Windows Inno Setup installer
+- many small improvements
+
+
+0.3
+- add optional auto start at boot
+- allow turning seconds display off (less resource use)
+- other clock improvements
+- add MacOS dmg installers
+
+
+0.2 
+- initial checkin

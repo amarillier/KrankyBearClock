@@ -5,33 +5,33 @@
 # go build .
 GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
 # set executable icon
-./setIcon.sh TaniumClock.png bin/MacOSAMD64/TaniumClock
+./setIcon.sh KrankyBearClock.png bin/MacOSAMD64/KrankyBearClock
 
-cp bin/MacOSAMD64/TaniumClock TaniumClock.app/Contents/MacOS
+cp bin/MacOSAMD64/KrankyBearClock KrankyBearClock.app/Contents/MacOS
 
-test -f TaniumClockIntel.dmg && rm TaniumClockIntel.dmg
-#   --volicon "TaniumClock.icns" \
+test -f KrankyBearClockIntel.dmg && rm KrankyBearClockIntel.dmg
+#   --volicon "KrankyBearClock.icns" \
 create-dmg \
-  --volname "TaniumClock" \
+  --volname "KrankyBearClock" \
   --window-pos 200 120 \
   --window-size 800 400 \
   --icon-size 100 \
-  --icon "TaniumClock.app" 200 190 \
-  --hide-extension "TaniumClock.app" \
+  --icon "KrankyBearClock.app" 200 190 \
+  --hide-extension "KrankyBearClock.app" \
   --app-drop-link 600 185 \
   --eula license.txt \
-  "TaniumClockIntel.dmg" \
-  "TaniumClock.app"
-  # --add-file TaniumClock.app ./TaniumClock.app
+  "KrankyBearClockIntel.dmg" \
+  "KrankyBearClock.app"
+  # --add-file KrankyBearClock.app ./KrankyBearClock.app
   # "./"
 
 # set dmg icon
-./setIcon.sh TaniumClock.png TaniumClockIntel.dmg
+./setIcon.sh KrankyBearClock.png KrankyBearClockIntel.dmg
 if [ ! -d installers ]
 then
   mkdir installers
 fi
-cp TaniumClockIntel.dmg installers
-cp TaniumClockIntel.dmg ~/OneDrive\ -\ Tanium\ Inc/Apps/
+cp KrankyBearClockIntel.dmg installers
+# cp KrankyBearClockIntel.dmg ~/OneDrive\ -\ KrankyBear\ Inc/Apps/
 
 # "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

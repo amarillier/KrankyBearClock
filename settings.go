@@ -35,7 +35,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		teapot(a, settingsc)
 	} else {
 		settingsc = a.NewWindow(clockName + ": Settings")
-		settingsc.SetIcon(resourceTaniumClockPng)
+		settingsc.SetIcon(resourceKrankyBearClockPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: clock display settings do not currently auto refresh, restart is required.
 	Displaying clock seconds can be much more CPU intensive than not!`
@@ -169,9 +169,9 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				log.Println("startatboot set to", value)
 			}
 			autoClock := autostart.New(autostart.Options{
-				Label:       "com.tanium.TaniumClock",
-				Name:        "TaniumClock",
-				Description: "Tanium Clock",
+				Label:       "com.KB.KrankyBearClock",
+				Name:        "KrankyBearClock",
+				Description: "KrankyBear Clock",
 				Mode:        autostart.ModeUser,
 				Arguments:   []string{},
 			})
@@ -548,7 +548,7 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	} else {
 		s := settings.NewSettings()
 		settingsth = a.NewWindow(clockName + ": Theme Settings")
-		settingsth.SetIcon(resourceTaniumClockPng)
+		settingsth.SetIcon(resourceKrankyBearClockPng)
 
 		appearance := s.LoadAppearanceScreen(w)
 		tabs := container.NewAppTabs(

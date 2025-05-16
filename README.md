@@ -1,9 +1,9 @@
-# Tanium Clock - personal fun / learning side project
+# KrankyBear Clock - personal fun / learning side project
 
 preferences stored via fyne preferences API land in
-~/Library/Preferences/fyne/com.tanium.taniumclock/preferences.json
-~\AppData\Roaming\fyne\com.tanium.taniumclock\preferences.json
-MacOS resource location (sounds and backgrounds): /Applications/Tanium Timer.app/Contents/Resources
+~/Library/Preferences/fyne/com.KB.KrankyBearClock/preferences.json
+~\AppData\Roaming\fyne\com.KB.KrankyBearClock\preferences.json
+MacOS resource location (sounds and backgrounds): /Applications/KrankyBear Timer.app/Contents/Resources
 Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 
@@ -28,7 +28,7 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 # Info for compiling / modifying
 
 # modules
-go mod init TaniumClock
+go mod init KrankyBearClock
 
 go mod tidy
 
@@ -86,11 +86,11 @@ https://convertio.co/
 https://www.freeconvert.com/png-to-svg/download
 
 # use https://www.aconvert.com/image/png-to-icns/ for png to icns conversion
-mkdir TaniumClock.app
-cp TaniumClock TaniumClock.app
-cp bg.tiff TaniumClock/.bg.tiff
-cp Icon* TaniumClock.app
-cp README.md TaniumClock.app
+mkdir KrankyBearClock.app
+cp KrankyBearClock KrankyBearClock.app
+cp bg.tiff KrankyBearClock/.bg.tiff
+cp Icon* KrankyBearClock.app
+cp README.md KrankyBearClock.app
 
 
 # Audio: audio converter https://online-audio-convert.com/en/mpeg-to-mp3/
@@ -104,13 +104,13 @@ MacOS extended / journaled, no encryption, no partition map
 -noaddpmap
 
 
-hdiutil create -megabytes 80 -readwrite -volname "TaniumClock" -srcfolder "TaniumClock.app" -ov -format UDZO "TaniumClock.dmg"
-hdiutil attach -owners on ./TaniumClock.dmg -shadow
-cp "Applications alias" /Volumes/TaniumClock
-cp bg.tiff /Volumes/TaniumClock/.bg.tiff
-disk=$(diskutil list | grep TaniumClock | awk '{ print $NF }')
+hdiutil create -megabytes 80 -readwrite -volname "KrankyBearClock" -srcfolder "KrankyBearClock.app" -ov -format UDZO "KrankyBearClock.dmg"
+hdiutil attach -owners on ./KrankyBearClock.dmg -shadow
+cp "Applications alias" /Volumes/KrankyBearClock
+cp bg.tiff /Volumes/KrankyBearClock/.bg.tiff
+disk=$(diskutil list | grep KrankyBearClock | awk '{ print $NF }')
 hdiutil detach /dev/$disk
-hdiutil convert TaniumClock.dmg -format UDRO -o ./TaniumClockRO.dmg
+hdiutil convert KrankyBearClock.dmg -format UDRO -o ./KrankyBearClockRO.dmg
 
 
 
@@ -124,10 +124,10 @@ https://milanpanchal24.medium.com/a-guide-to-converting-app-to-dmg-on-macos-c19f
 
 
 # Generate the DMG file with debug option
-hdiutil create -volname "TaniumClock" -srcfolder "TaniumClock.app" -ov -format UDZO "TaniumClock.dmg" -debug
+hdiutil create -volname "KrankyBearClock" -srcfolder "KrankyBearClock.app" -ov -format UDZO "KrankyBearClock.dmg" -debug
 
 # Generate the DMG file with encryption [AES-128|AES-256]
-hdiutil create -volname "TaniumClock" -srcfolder "TaniumClock.app" -ov -format UDZO "TaniumClock.dmg" -encryption AES-128
+hdiutil create -volname "KrankyBearClock" -srcfolder "KrankyBearClock.app" -ov -format UDZO "KrankyBearClock.dmg" -encryption AES-128
 
 https://stackoverflow.com/questions/37292756/how-to-create-a-dmg-file-for-a-app-for-mac
 

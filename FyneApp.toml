@@ -1,10 +1,10 @@
 [Details]
-ID = "com.tanium.TaniumClock"
-Name = "Tanium Clock"
+ID = "com.KB.KrankyBearClock"
+Name = "Kranky Bear Clock"
 Creator = "Allan Marillier"
-Version = "0.3.3"
+Version = "0.3.4"
 Build = 1
-Icon = "TaniumClock.png"
+Icon = "KrankyBearClock.png"
 
 [Migrations]
   fyneDo = true
