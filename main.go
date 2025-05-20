@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	clockName    = "KrankyBear Clock"
+	clockName    = "Kranky Bear Clock"
 	clockVersion = "0.3.4" // see FyneApp.toml
 	clockAuthor  = "Allan Marillier"
 )
@@ -74,8 +74,8 @@ var hourchimesound string
 var startclock int
 
 // preferences stored via fyne preferences API land in
-// ~/Library/Preferences/fyne/com.KB.KrankyBearClock/preferences.json
-// ~\AppData\Roaming\fyne\com.KB.KrankyBearClock\preferences.json
+// ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
+// ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearClock\preferences.json
 // {"bgcolor.default":"0,143,251,255","color_recents":"#eee53a,#83de4a,#f44336,#ffffff,#9c27b0,#8bc34a,#ff9800","datecolor.default":"131,222,74,255","datefont.default":"arial","datesize.default":24,"hourchime.default":1,"hourchimesound.default":"cuckoo.mp3","showdate.default":1,"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,"showutc.default":1,"startclock.default":0,"timecolor.default":"255,123,31,255","timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255","utcfont.default":"arial","utcsize.default":18}
 
 func main() {
@@ -98,7 +98,7 @@ func main() {
 		imgDir = launchDir + "/Resources/Images"
 	}
 
-	a := app.NewWithID("com.KB.KrankyBearClock")
+	a := app.NewWithID("com.github.amarillier.KrankyBearClock")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	clock = a.NewWindow(clockName)
 	clock.SetIcon(resourceKrankyBearClockPng)
@@ -331,7 +331,7 @@ func main() {
 				hyperlink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearClock/blob/main/license.txt", link)
 				hyperlink.Alignment = fyne.TextAlignLeading
 
-				licText := `KrankyBearClock is FREE Software” as defined in the license agreement below. 
+				licText := `Kranky Bear Clock is FREE Software” as defined in the license agreement below. 
  
 This application is "FREE Software". 
 
