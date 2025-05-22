@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -143,6 +144,12 @@ func teapot(a fyne.App, w fyne.Window) {
 	vol, _ := volume.GetVolume()
 	var teapotvol = 10
 
+	link, err := url.Parse("https://www.rfc-editor.org/rfc/rfc2324.html")
+	if err != nil {
+		fyne.LogError("Could not parse URL", err)
+	}
+	hyperlink := widget.NewHyperlink("What is http 418? https://www.rfc-editor.org/rfc/rfc2324.html", link)
+	hyperlink.Alignment = fyne.TextAlignLeading
 	tpwin := a.NewWindow(clockName + ": http: 418")
 	tpwin.SetIcon(resourceKrankyBearClockPng)
 	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
@@ -150,7 +157,7 @@ func teapot(a fyne.App, w fyne.Window) {
 	text := "Whoo-hoo! You found another Easter egg!\n"
 
 	tpwintext := widget.NewLabel(text)
-	content := container.NewVBox(tpwinimage, tpwintext)
+	content := container.NewVBox(tpwinimage, tpwintext, hyperlink)
 	tpwin.SetContent(content)
 	// tpwin.CenterOnScreen() // run centered on primary (laptop) display
 	// tpwin.Show()
