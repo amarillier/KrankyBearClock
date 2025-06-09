@@ -1,13 +1,19 @@
 Release notes
 
-0.3.4 NEXT
+0.4.NEXT
+- Possible "days until ..." calculation, optional display via settings in clock
+- Possible optional extra time zones to display in clock
+- Possible optional alarms similar to phone - one time, repeat interval in clock
+- Possible add API to get current location temperature? in clock
+- Possible add update checker (no silent auto update, users must be allowed to choose)
+- Possibly add homebrew / choco packages
+- 
+
+
+0.4.0
 - Added release notes
--
-- Add "days until ..." calculation, optional display via settings
-- Add optional extra time zones to display
-- Add optional alarms similar to phone - one time, repeat interval
-- Possible add API to get current location temperature?
-- Possible add update checker
+- Rebranded to Kranky Bear Clock, this has always been a personal project and I planned, but decided not to go look for legal approval which would likely be denied anyway since this is not an official company supported app
+- Update checker - preparation for github release checks
 
 
 0.3.3 

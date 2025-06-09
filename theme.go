@@ -1,3 +1,4 @@
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBear.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearClock.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcn.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcbe.png

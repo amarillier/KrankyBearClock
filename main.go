@@ -26,12 +26,12 @@ import (
 )
 
 const (
-	clockName    = "Kranky Bear Clock"
-	clockVersion = "0.3.4" // see FyneApp.toml
-	clockAuthor  = "Allan Marillier"
+	appName    = "Kranky Bear Clock"
+	appVersion = "0.3.4" // see FyneApp.toml
+	appAuthor  = "Allan Marillier"
 )
 
-var clockCopyright = "(c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
+var appCopyright = "Copyright (c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var imgDir string
 var clockbg string // future optional clock background image
 
@@ -41,6 +41,7 @@ var clock fyne.Window
 var settingsc fyne.Window
 var settingsth fyne.Window
 var abt fyne.Window
+var updt fyne.Window
 var hlp fyne.Window
 
 // var egg fyne.Window
@@ -100,7 +101,7 @@ func main() {
 
 	a := app.NewWithID("com.github.amarillier.KrankyBearClock")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
-	clock = a.NewWindow(clockName)
+	clock = a.NewWindow(appName)
 	clock.SetIcon(resourceKrankyBearClockPng)
 	clock.SetPadded(false)
 	//clock.SetCloseIntercept(func() {
@@ -240,17 +241,23 @@ func main() {
 		})
 		hide := fyne.NewMenuItem("Hide", clock.Hide)
 		about := fyne.NewMenuItem("About", func() {
-			aboutText := clockName + " v " + clockVersion
-			aboutText += "\n" + clockCopyright
-			aboutText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
-			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
+			aboutText := appName + " v " + appVersion
+			aboutText += "\n" + appCopyright
+			aboutText += "\n\nCreated by " + appAuthor + ", using Go and fyne GUI"
+			aboutText += "\n\nNo obligation, it's rewarding to hear if use this app."
 			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
 
+			kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+			text := widget.NewLabel(aboutText)
+			kb.FillMode = canvas.ImageFillOriginal
+			content := container.NewHBox(kb, text)
+
 			if abt == nil || !abt.Content().Visible() {
-				abt = a.NewWindow(clockName + ": About")
+				abt = a.NewWindow(appName + ": About")
 				abt.SetIcon(resourceKrankyBearClockPng)
 				abt.Resize(fyne.NewSize(50, 100))
-				abt.SetContent(widget.NewLabel(aboutText))
+				// abt.SetContent(widget.NewLabel(aboutText))
+				abt.SetContent(content)
 				abt.SetCloseIntercept(func() {
 					abt.Close()
 					abt = nil
@@ -265,7 +272,7 @@ func main() {
 		help := fyne.NewMenuItem("Help", func() {
 			// if hlp != nil { // &&  !hlp.Content().Visible() {
 			if hlp == nil || !hlp.Content().Visible() {
-				hlp = a.NewWindow(clockName + ": Help")
+				hlp = a.NewWindow(appName + ": Help")
 				hlp.SetIcon(resourceKrankyBearClockPng)
 
 				hlp.SetCloseIntercept(func() {
@@ -295,9 +302,9 @@ func main() {
 
 - Default settings will be created on first run if they don't exist
 `
-				hlpText += "\n" + clockName + " v " + clockVersion
-				hlpText += "\n" + clockCopyright
-				hlpText += "\n\n" + clockAuthor + ", using Go and fyne GUI"
+				hlpText += "\n" + appName + " v " + appVersion
+				hlpText += "\n" + appCopyright
+				hlpText += "\n\n" + appAuthor + ", using Go and fyne GUI"
 
 				plnText := `- Allow multiple time zones for clock, hh:mm only + offset
 - Allow multiple alarm times with user selectable tones for each
@@ -335,13 +342,18 @@ func main() {
  
 This application is "FREE Software". 
 
-This application is intended for any use by any individual, in any organization. This application
-provides no guarantees as to stability of operations or suitability for any
-purpose, but every attempt has been made to make this application reliable.
+This application is intended for any use by any individual, in any organization.
+
+This application provides no guarantees as to stability of operations or suitability 
+for any purpose, but every attempt has been made to make this application reliable.
+
+This application may not be sold, no money may be asked by anyone for provision of, or any services related to this application.
 
 Using this application (and reading this text) is considered acceptance of
 the terms of the License Agreement, and acknowledgement that this is FREE
 Software and the additional terms above.
+
+See https://github.com/amarillier/KrankyBearClock/
 `
 
 				settingsText := `Settings are a separate tray menu item
@@ -400,10 +412,39 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
 			makeSettingsTheme(a, clock, bg)
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, help, settingsClock, settingsTheme)
+		updtchk := fyne.NewMenuItem("Check for update", func() {
+			updtmsg := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
+			if updt == nil {
+				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+				kb.FillMode = canvas.ImageFillOriginal
+				text := widget.NewLabel(updtmsg)
+				content := container.NewHBox(kb, text)
+				updt = a.NewWindow(appName + ": Update Check")
+				updt.SetIcon(resourceKrankyBearPng)
+				updt.Resize(fyne.NewSize(50, 100))
+				// updt.SetContent(widget.NewLabel(updtmsg))
+				updt.SetContent(content)
+				updt.SetCloseIntercept(func() {
+					updt.Close()
+					updt = nil
+				})
+				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
+				updt.Show()
+				if !strings.Contains(updtmsg, "You are running the latest") {
+					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
+						playBeep("up")
+					} else {
+						playMp3(sndDir + "//KrankyBearGrowl.mp3") // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
+					}
+				}
+			} else {
+				updt.RequestFocus()
+			}
+		})
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
 		desk.SetSystemTrayIcon(resourceKrankyBearClockPng)
-		systray.SetTooltip(clockName)
+		systray.SetTooltip(appName)
 		// systray.SetTitle(clockName)
 
 		// Menu items

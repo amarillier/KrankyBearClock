@@ -11,6 +11,7 @@ else
     if [ -z "$ver" ]
     then
         echo "Enter a version!"
+        echo "No version change detected, continuing to allow compile to continue"
         exit
     else
         echo "Version: $ver"
@@ -33,3 +34,6 @@ sed -i '' "s/file_version\":.*/file_version\": \"$ver\",/" ./winres/winres.json
 sed -i '' "s/product_version\":.*/product_version\": \"$ver\"/" ./winres/winres.json
 sed -i '' "s/FileVersion\":.*/FileVersion\": \"$ver\",/" ./winres/winres.json
 sed -i '' "s/ProductVersion\":.*/ProductVersion\": \"$ver\",/" ./winres/winres.json
+
+echo "Info.plist"
+sed -i '' "s/<string>v .*<\/string>/<string>v $ver<\/string>/" ./KrankyBearClock.app/Contents/Info.plist
