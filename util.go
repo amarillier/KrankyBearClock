@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/url"
@@ -20,7 +19,8 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	updatechecker "github.com/Christian1984/go-update-checker"
+
+	updatechecker "github.com/amarillier/go-update-checker"
 	"github.com/itchyny/volume-go"
 )
 
@@ -56,7 +56,7 @@ func daysUntil(targetDate string) (int, error) {
 // https://rollbar.com/blog/golang-error-logging-guide/
 func logInit() {
 	// typically written to Resources/...
-	file, err := os.OpenFile("KrankyBearClock0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(processName+"0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,17 +86,17 @@ func lineCounter(r io.Reader) (int, error) {
 }
 
 func logRotate() {
-	if checkFileExists("KrankyBearClock2.txt") {
-		f := os.Remove("KrankyBearClock2.txt")
+	if checkFileExists(processName + "2.txt") {
+		f := os.Remove(processName + "2.txt")
 		if f != nil {
-			ErrorLog.Println("Error attempting to remove KrankyBearClock2.txt")
+			ErrorLog.Printf("Error attempting to remove %s", processName+"2.txt")
 		}
 	}
-	if checkFileExists("KrankyBearClock1.txt") {
-		os.Rename("KrankyBearClock1.txt", "KrankyBearClock2.txt")
+	if checkFileExists(processName + "1.txt") {
+		os.Rename(processName+"1.txt", processName+"2.txt")
 	}
-	if checkFileExists("KrankyBearClock0.txt") {
-		os.Rename("KrankyBearClock0.txt", "KrankyBearClock1.txt")
+	if checkFileExists(processName + "0.txt") {
+		os.Rename(processName+"0.txt", processName+"1.txt")
 	}
 }
 
@@ -106,16 +106,19 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	var eggvol = 15
 	var certs []fyne.Resource
 
-	processRegex := "^tanium.*"
-	if isProcessRunning(processRegex) {
-		certs = []fyne.Resource{resourceKrankyBearPng, resourceTcnPng, resourceKrankyBearPng, resourceTccPng, resourceKrankyBearPng, resourceTcbePng, resourceKrankyBearPng, resourceHttp418Png}
+	// allow for Tanium branding, show certs
+	// improve this, and add other Kranky Bear images
+	processName := "^tanium.*"
+	processRegex := regexp.MustCompile(`(?i)^tanium`)
+	if processRegex.MatchString(appNameCustom) || isProcessRunning(processName) {
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceTcnPng, resourceKrankyBearPng, resourceTccPng, resourceKrankyBearPng, resourceTcbePng, resourceKrankyBearPng}
 	} else {
-		certs = []fyne.Resource{resourceKrankyBearPng, resourceHttp418Png}
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceHttp418Png, resourceKrankyBearPng}
 	}
 
 	randomIndex := rand.Intn(len(certs))
 	egg := a.NewWindow(appName + ": easter egg")
-	egg.SetIcon(resourceKrankyBearClockPng)
+	egg.SetIcon(resourceKrankyBearPng)
 	eggimage := canvas.NewImageFromResource(certs[randomIndex])
 	eggimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found the Easter egg!\n"
@@ -163,7 +166,7 @@ func teapot(a fyne.App, w fyne.Window) {
 	hyperlink := widget.NewHyperlink("What is http 418? https://www.rfc-editor.org/rfc/rfc2324.html", link)
 	hyperlink.Alignment = fyne.TextAlignLeading
 	tpwin := a.NewWindow(appName + ": http: 418")
-	tpwin.SetIcon(resourceKrankyBearClockPng)
+	tpwin.SetIcon(resourceKrankyBearPng)
 	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
 	tpwinimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found another Easter egg!\n"
@@ -204,7 +207,7 @@ func listMatchingFiles(directory, pattern string) ([]string, error) {
 	var matchingFiles []string
 
 	// Read the directory
-	files, err := ioutil.ReadDir(directory)
+	files, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
 	}
@@ -279,13 +282,13 @@ func isProcessRunning(processRegex string) bool {
 	return false
 }
 
-func updateChecker(repoOwner string, repo string, repoName string, repodl string) string {
+func updateChecker(repoOwner string, repo string, repoName string, repodl string) (string, bool) {
 	// uc := updatechecker.New("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "", 1, false)
 	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 0, false)
 	uc.CheckForUpdate(appVersion)
 	// uc.PrintMessage()
 	updtmsg := uc.Message
-	return updtmsg
+	return updtmsg, uc.UpdateAvailable
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

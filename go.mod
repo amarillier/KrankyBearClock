@@ -1,21 +1,22 @@
 module github.com/amarillier/KrankyBearClock
 
-go 1.23.2
+go 1.24.2
 
 require (
-	fyne.io/fyne/v2 v2.6.0
+	fyne.io/fyne/v2 v2.6.1
 	fyne.io/systray v1.11.0
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
-	github.com/gopxl/beep/v2 v2.1.0
+	github.com/amarillier/go-update-checker v0.0.3
+	github.com/gopxl/beep/v2 v2.1.1
 	github.com/itchyny/volume-go v0.2.2
 	github.com/spiretechnology/go-autostart/v2 v2.0.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/Christian1984/go-update-checker v0.0.3 // indirect
+	github.com/amarillier/KrankyBearModule v0.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/ebitengine/oto/v3 v3.3.1 // indirect
+	github.com/ebitengine/oto/v3 v3.3.2 // indirect
 	github.com/ebitengine/purego v0.8.1 // indirect
 	github.com/fredbi/uri v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect

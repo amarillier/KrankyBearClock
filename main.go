@@ -23,14 +23,18 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"fyne.io/systray"
+	// audio "github.com/amarillier/KrankyBearModule/audio"
+	// util "github.com/amarillier/KrankyBearModule/util"
 )
 
 const (
-	appName    = "Kranky Bear Clock"
-	appVersion = "0.3.4" // see FyneApp.toml
+	// appName    = "Kranky Bear Clock"
+	appVersion = "0.4.1" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
+var appName = "Kranky Bear Clock"
+var appNameCustom = ""
 var appCopyright = "Copyright (c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var imgDir string
 var clockbg string // future optional clock background image
@@ -73,6 +77,7 @@ var datesize int
 var utcsize int
 var hourchimesound string
 var startclock int
+var processName string
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
@@ -81,6 +86,7 @@ var startclock int
 
 func main() {
 	exePath, err := os.Executable()
+	processName = filepath.Base(os.Args[0])
 	if err != nil {
 		panic(err)
 	}
@@ -232,6 +238,27 @@ func main() {
 			log.Println("hourchimesound:", hourchimesound)
 			log.Println("startclock:", startclock)
 		}
+	}
+
+	// check update first
+	updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
+	if updateAvail {
+		// open a window to show the update message
+		// no need to test for updt window open at first start
+		kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+		kb.FillMode = canvas.ImageFillOriginal
+		text := widget.NewLabel(updtmsg)
+		content := container.NewHBox(kb, text)
+		updt = a.NewWindow(appName + ": Update Check")
+		updt.SetIcon(resourceKrankyBearPng)
+		updt.Resize(fyne.NewSize(50, 100))
+		updt.SetContent(content)
+		updt.SetCloseIntercept(func() {
+			updt.Close()
+			updt = nil
+		})
+		updt.CenterOnScreen() // run centered on primary (laptop) display
+		updt.Show()
 	}
 
 	if desk, ok := a.(desktop.App); ok {
@@ -413,7 +440,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			makeSettingsTheme(a, clock, bg)
 		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
-			updtmsg := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
+			// throw away updateAvail here, use _, unneeded for manual check
+			updtmsg, _ := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
 			if updt == nil {
 				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
 				kb.FillMode = canvas.ImageFillOriginal
@@ -430,7 +458,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 				})
 				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
 				updt.Show()
-				if !strings.Contains(updtmsg, "You are running the latest") {
+				// if !strings.Contains(updtmsg, "You are running the latest") {
+				if updateAvail {
 					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
 						playBeep("up")
 					} else {

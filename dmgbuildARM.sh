@@ -6,7 +6,7 @@
 # GOOS=linux GOARCH=arm64 go build -ldflags="-w -s" -o bin/MacOSARM64/
 GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
 # set executable icon
-./setIcon.sh KrankyBearClock.png bin/MacOSARM64/KrankyBearClock
+./setIcon.sh KrankyBear.png bin/MacOSARM64/KrankyBearClock
 
 # cp KrankyBearClock KrankyBearClock.app/Contents/MacOS
 cp bin/MacOSARM64/KrankyBearClock KrankyBearClock.app/Contents/MacOS

@@ -71,11 +71,15 @@ func playWav(name string) {
 	f, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
+		playBeep("up")
+		return
 	}
 
 	streamer, format, err := wav.Decode(f)
 	if err != nil {
 		log.Fatal(err)
+		playBeep("up")
+		return
 	}
 	defer streamer.Close()
 

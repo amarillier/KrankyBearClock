@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KrankyBearClock"
-#define MyAppVersion "0.3.4"
+#define MyAppVersion "0.4.1"
 #define MyAppPublisher "Allan Marillier, 2024-2025"
 #define MyAppURL "https://github.com/amarillier/KrankyBearClock"
 #define MyAppExeName "KrankyBearClock.exe"
@@ -53,6 +53,7 @@ Name: "startup"; Description: "Automatically start on login (or enable later via
 Source: "C:\Allan\Source\go\KrankyBearClock\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Allan\Source\go\KrankyBearClock\Resources\*"; DestDir: "{app}\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+Source: "C:\Allan\Source\go\KrankyBearClock\ReleaseNotes.txt"; DestDir: "{app}"; Flags: isreadme
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\{#MyAppAssocExt}\OpenWithProgids"; ValueType: string; ValueName: "{#MyAppAssocKey}"; ValueData: ""; Flags: uninsdeletevalue
