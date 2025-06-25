@@ -6,7 +6,16 @@ Release notes
 - Possible optional alarms similar to phone - one time, repeat interval in clock
 - Possible add API to get current location temperature? in clock
 - Possibly add homebrew / choco packages
+- audio.go and util.go to a separate module, they are identical between apps
 - 
+
+
+0.4.2
+- Update checker improvements, never any silent auto update, user must be
+    allowed to choose to update
+- Added 'portable' apps with zip files containing binaries and Resources/* for Mac ARM/AMD and Windows AMD
+- Bump to use updated libraries released to remediate a minor vulnerability
+    While I am not using specific functions that had the vulnerability, I upgraded for security
 
 
 0.4.1

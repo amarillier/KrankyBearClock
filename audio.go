@@ -42,28 +42,38 @@ func playMp3(name string) {
 }
 
 func playMid(name string) {
-	// not working - needs to be fixed
+	// not using for now - soundfont is ridiculously big
 	return
 	/*
-		f, err := os.Open(name)
+		var sampleRate beep.SampleRate = 44100
+
+		err := speaker.Init(sampleRate, sampleRate.N(time.Second/30))
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		streamer, format, err := midi.Decode(f)
+		// Load a soundfont.
+		soundFontFile, err := os.Open("Florestan-Basic-GM-GS-by-Nando-Florestan(Public-Domain).sf2")
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer streamer.Close()
+		soundFont, err := midi.NewSoundFont(soundFontFile)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+		// Load a midi track
+		midiFile, err := os.Open(name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s, format, err := midi.Decode(midiFile, soundFont, sampleRate)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		done := make(chan bool)
-		speaker.Play(beep.Seq(streamer, beep.Callback(func() {
-			done <- true
-		})))
-
-		<-done
+		fmt.Printf("Song duration: %v\n", format.SampleRate.D(s.Len()))
+		speaker.PlayAndWait(s)
 	*/
 }
 

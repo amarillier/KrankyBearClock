@@ -2,8 +2,8 @@
   "RT_GROUP_ICON": {
     "APP": {
       "0000": [
-        "KrankyBearClock256.png",
-        "KrankyBearClock64.png"
+        "../Resources/Images/KrankyBearBeret.png",
+        "../Resources/Images/KrankyBearBeret64.png"
       ]
     }
   },
@@ -36,22 +36,22 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "0.4.1",
-          "product_version": "0.4.1"
+          "file_version": "0.4.2",
+          "product_version": "0.4.2"
         },
         "info": {
           "0409": {
             "Comments": "",
             "CompanyName": "Allan Marillier",
             "FileDescription": "KrankyBearClock",
-            "FileVersion": "0.4.1",
+            "FileVersion": "0.4.2",
             "InternalName": "",
             "LegalCopyright": "Allan Marillier, 2024-2025",
             "LegalTrademarks": "",
             "OriginalFilename": "",
             "PrivateBuild": "",
             "ProductName": "KrankyBearClock",
-            "ProductVersion": "0.4.1",
+            "ProductVersion": "0.4.2",
             "SpecialBuild": ""
           }
         }

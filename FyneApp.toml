@@ -2,9 +2,9 @@
 ID = "com.github.amarillier.KrankyBearClock"
 Name = "Kranky Bear Clock"
 Creator = "Allan Marillier"
-Version = "0.4.1"
+Version = "0.4.2"
 Build = 1
-Icon = "KrankyBearClock.png"
+Icon = "Resources/Images/KrankyBearBeret.png"
 
 [Migrations]
   fyneDo = true

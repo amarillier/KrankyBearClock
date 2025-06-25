@@ -24,12 +24,12 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"fyne.io/systray"
 	// audio "github.com/amarillier/KrankyBearModule/audio"
-	// util "github.com/amarillier/KrankyBearModule/util"
+	// audio "github.com/amarillier/KrankyBearModule/util"
 )
 
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.1" // see FyneApp.toml
+	appVersion = "0.4.2" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -108,7 +108,7 @@ func main() {
 	a := app.NewWithID("com.github.amarillier.KrankyBearClock")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	clock = a.NewWindow(appName)
-	clock.SetIcon(resourceKrankyBearClockPng)
+	clock.SetIcon(resourceKrankyBearBeretPng)
 	clock.SetPadded(false)
 	//clock.SetCloseIntercept(func() {
 	//	a.Quit() // force quit, normal when somebody hits "x" to close
@@ -245,20 +245,7 @@ func main() {
 	if updateAvail {
 		// open a window to show the update message
 		// no need to test for updt window open at first start
-		kb := canvas.NewImageFromResource(resourceKrankyBearPng)
-		kb.FillMode = canvas.ImageFillOriginal
-		text := widget.NewLabel(updtmsg)
-		content := container.NewHBox(kb, text)
-		updt = a.NewWindow(appName + ": Update Check")
-		updt.SetIcon(resourceKrankyBearPng)
-		updt.Resize(fyne.NewSize(50, 100))
-		updt.SetContent(content)
-		updt.SetCloseIntercept(func() {
-			updt.Close()
-			updt = nil
-		})
-		updt.CenterOnScreen() // run centered on primary (laptop) display
-		updt.Show()
+		updateAlert(a, updtmsg)
 	}
 
 	if desk, ok := a.(desktop.App); ok {
@@ -274,14 +261,14 @@ func main() {
 			aboutText += "\n\nNo obligation, it's rewarding to hear if use this app."
 			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
 
-			kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+			kb := canvas.NewImageFromResource(resourceKrankyBearBeretPng)
 			text := widget.NewLabel(aboutText)
 			kb.FillMode = canvas.ImageFillOriginal
 			content := container.NewHBox(kb, text)
 
 			if abt == nil || !abt.Content().Visible() {
 				abt = a.NewWindow(appName + ": About")
-				abt.SetIcon(resourceKrankyBearClockPng)
+				abt.SetIcon(resourceKrankyBearBeretPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				// abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetContent(content)
@@ -300,7 +287,7 @@ func main() {
 			// if hlp != nil { // &&  !hlp.Content().Visible() {
 			if hlp == nil || !hlp.Content().Visible() {
 				hlp = a.NewWindow(appName + ": Help")
-				hlp.SetIcon(resourceKrankyBearClockPng)
+				hlp.SetIcon(resourceKrankyBearBeretPng)
 
 				hlp.SetCloseIntercept(func() {
 					hlp.Close()
@@ -443,36 +430,14 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			// throw away updateAvail here, use _, unneeded for manual check
 			updtmsg, _ := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
 			if updt == nil {
-				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
-				kb.FillMode = canvas.ImageFillOriginal
-				text := widget.NewLabel(updtmsg)
-				content := container.NewHBox(kb, text)
-				updt = a.NewWindow(appName + ": Update Check")
-				updt.SetIcon(resourceKrankyBearPng)
-				updt.Resize(fyne.NewSize(50, 100))
-				// updt.SetContent(widget.NewLabel(updtmsg))
-				updt.SetContent(content)
-				updt.SetCloseIntercept(func() {
-					updt.Close()
-					updt = nil
-				})
-				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
-				updt.Show()
-				// if !strings.Contains(updtmsg, "You are running the latest") {
-				if updateAvail {
-					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
-						playBeep("up")
-					} else {
-						playMp3(sndDir + "//KrankyBearGrowl.mp3") // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
-					}
-				}
+				updateAlert(a, updtmsg)
 			} else {
 				updt.RequestFocus()
 			}
 		})
 		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceKrankyBearClockPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearBeretPng)
 		systray.SetTooltip(appName)
 		// systray.SetTitle(clockName)
 
@@ -486,7 +451,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			a.Quit()
 		})
 		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
-		newMenuHelp := fyne.NewMenu("Help", about, help)
+		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTheme)
 		// New main menu
 		cmenu := fyne.NewMainMenu(newMenuOps, newMenuHelp, newMenuSettings)
@@ -645,6 +610,56 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 	// clock.Resize(fyne.NewSize(300, 200))
 	clock.ShowAndRun()
 	// clock.Show() // for func inside KrankyBearTimer
+}
+
+func updateAlert(a fyne.App, updtmsg string) {
+	// open a window to show the update message
+	// no need to test for updt window open at first start
+	var kbimg *canvas.Image
+	releaselink, rerr := url.Parse("https://github.com/amarillier/KrankyBearClock/releases/latest")
+	if rerr != nil {
+		fyne.LogError("Could not parse URL", rerr)
+	}
+	myreleaselink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearClock/releases/latest", releaselink)
+	myreleaselink.Alignment = fyne.TextAlignLeading
+
+	releasenoteslink, rnerr := url.Parse("https://github.com/amarillier/KrankyBearClock/blob/main/ReleaseNotes.txt")
+	if rnerr != nil {
+		fyne.LogError("Could not parse URL", rnerr)
+	}
+	myreleasenoteslink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearClock/blob/main/ReleaseNotes.txt", releasenoteslink)
+	myreleasenoteslink.Alignment = fyne.TextAlignLeading
+
+	if strings.Contains(updtmsg, "newer version") {
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearHardHatPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	} else if strings.Contains(updtmsg, "running the latest") {
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearBeretPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	} else {
+		alert := sndDir + "/KrankyBearGrowl.mp3"
+		alert = sndDir + "/uhOh.mp3"
+		if !checkFileExists(alert) {
+			playBeep("up")
+		} else {
+			playMp3(alert) // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
+		}
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearVikingHelmetPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	}
+
+	text := widget.NewLabel(updtmsg)
+	content := container.NewVBox(kbimg, text, myreleaselink, myreleasenoteslink)
+	updt = a.NewWindow(appName + ": Update Check")
+	updt.SetIcon(resourceKrankyBearBeretPng)
+	updt.Resize(fyne.NewSize(50, 100))
+	updt.SetContent(content)
+	updt.SetCloseIntercept(func() {
+		updt.Close()
+		updt = nil
+	})
+	// updt.CenterOnScreen() // run centered on primary (laptop) display
+	updt.Show()
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

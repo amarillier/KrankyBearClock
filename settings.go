@@ -35,7 +35,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		teapot(a, settingsc)
 	} else {
 		settingsc = a.NewWindow(appName + ": Settings")
-		settingsc.SetIcon(resourceKrankyBearClockPng)
+		settingsc.SetIcon(resourceKrankyBearBeretPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: clock display settings do not currently auto refresh, restart is required.
 	Displaying clock seconds can be much more CPU intensive than not!`
@@ -548,7 +548,7 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	} else {
 		s := settings.NewSettings()
 		settingsth = a.NewWindow(appName + ": Theme Settings")
-		settingsth.SetIcon(resourceKrankyBearClockPng)
+		settingsth.SetIcon(resourceKrankyBearBeretPng)
 
 		appearance := s.LoadAppearanceScreen(w)
 		tabs := container.NewAppTabs(

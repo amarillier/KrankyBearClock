@@ -1,9 +1,19 @@
 //go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBear.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearClock.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/tcn.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/tcbe.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/tcc.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearBeret.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearBeanieMultiColor.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearChristmas.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearChristmasGrinch.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearCowboyBrown.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearFedoraRed.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearHardHat.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearHogwartsSorting.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearTrapperRedPlaid.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearVikingHelmet.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/http418.png
+
+///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcn256.png
+///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcc256.png
+///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcbe256.png
 
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/boing.mp3
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Basso.mp3

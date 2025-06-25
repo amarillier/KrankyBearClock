@@ -1,0 +1,4 @@
+0.4.2
+- Update checker improvements, never any silent auto update, user must be
+    allowed to choose to update
+- 
