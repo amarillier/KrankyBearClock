@@ -142,3 +142,4 @@ Type hdiutil create -volname N -srcfolder P -ov N.dmg
 Replace N with the name of the disk image file and P with the path of the source volume
 Press Return
 
+<img width="402" alt="image" src="https://github.com/user-attachments/assets/cdc068a9-bbc5-4703-98c7-c569a002c0ef" />
