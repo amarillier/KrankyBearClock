@@ -6,6 +6,8 @@
 
 # Kranky Bear Clock
 
+![image](https://github.com/user-attachments/assets/eb234c46-98bb-4da0-b418-431d0afecbb5)
+
 preferences stored via fyne preferences API land in
 ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
 ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearClock\preferences.json
