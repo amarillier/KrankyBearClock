@@ -23,12 +23,11 @@ Theme preferences are in ~/Library/Preferences/fyne/settings.json
 * show 12 / 24 hour time
 * hourly chime and chime selector
 * settings to allow modifying font sizes, colors, font name, background color
+* Available for Windows with Setup.exe and MacOS .dmg installers, as well as zip files for portable apps 
 
 # To-do / known problems
 - Allow optional always on top, save in prefs - may not be possible on Mac
 https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
+- See ReleaseNotes.txt for all recent changes and future plans
 
 - Known problems - needs OpenGL drivers on some Windows
-- Possibly add one or more clock alarms - one time, recurring etc.
-
-
