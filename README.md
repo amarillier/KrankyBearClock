@@ -4,9 +4,7 @@
 <img width="616" alt="image" src="https://github.com/user-attachments/assets/55109959-8981-460d-aab5-42bd120a8237" />
 <img width="866" alt="image" src="https://github.com/user-attachments/assets/a649713e-8313-49ef-b802-c1f2e639245b" />
 
-# Kranky Bear Clock
-
-![image](https://github.com/user-attachments/assets/eb234c46-98bb-4da0-b418-431d0afecbb5)
+# Kranky Bear Clock ![image](https://github.com/user-attachments/assets/eb234c46-98bb-4da0-b418-431d0afecbb5)
 
 preferences stored via fyne preferences API land in
 ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
