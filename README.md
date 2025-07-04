@@ -1,9 +1,4 @@
 
-
-<img width="623" alt="image" src="https://github.com/user-attachments/assets/fcfce1f6-f571-42aa-ad7c-a3a2a1a948ae" />
-<img width="616" alt="image" src="https://github.com/user-attachments/assets/55109959-8981-460d-aab5-42bd120a8237" />
-<img width="866" alt="image" src="https://github.com/user-attachments/assets/a649713e-8313-49ef-b802-c1f2e639245b" />
-
 # Kranky Bear Clock ![image](https://github.com/user-attachments/assets/eb234c46-98bb-4da0-b418-431d0afecbb5)
 
 preferences stored via fyne preferences API land in
@@ -31,3 +26,9 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 - See ReleaseNotes.txt for all recent changes and future plans
 
 - Known problems - needs OpenGL drivers on some Windows
+
+
+
+<img width="623" alt="image" src="https://github.com/user-attachments/assets/fcfce1f6-f571-42aa-ad7c-a3a2a1a948ae" />
+<img width="616" alt="image" src="https://github.com/user-attachments/assets/55109959-8981-460d-aab5-42bd120a8237" />
+<img width="866" alt="image" src="https://github.com/user-attachments/assets/a649713e-8313-49ef-b802-c1f2e639245b" />
