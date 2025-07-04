@@ -10,13 +10,13 @@ Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 ## Features
 
-* Clock with options for:
+* Desktop clock with options for:
 * show seconds
 * show timezone
 * show date/day
 * show UTC time
 * show 12 / 24 hour time
-* hourly chime and chime selector
+* hourly chime and chime selector, optional auto mute and unmute sound at specified times
 * settings to allow modifying font sizes, colors, font name, background color
 * Available for Windows with Setup.exe and MacOS .dmg installers, as well as zip files for portable apps 
 
