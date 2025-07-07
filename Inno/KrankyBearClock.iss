@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KrankyBearClock"
-#define MyAppVersion "0.4.2"
+#define MyAppVersion "0.4.3"
 #define MyAppPublisher "Allan Marillier, 2024-2025"
 #define MyAppURL "https://github.com/amarillier/KrankyBearClock"
 #define MyAppExeName "KrankyBearClock.exe"

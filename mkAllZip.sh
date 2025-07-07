@@ -1,6 +1,6 @@
 #! /bin/sh
 
-version="0.4.2"
+version="0.4.3"
 cp README.md installers/KrankyBearClock/Resources
 cp ReleaseNotes.txt installers/KrankyBearClock/Resources
 cd installers || exit
@@ -17,7 +17,7 @@ zip -r KrankyBearClockMacOSARM.zip KrankyBearClock
 rm KrankyBearClock/KrankyBearClock
 
 # see gh docs: https://cli.github.com/manual/gh_release_create
-awk '/0.4.2/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt
+awk '/0.4.3/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt
 gh release create --title v"$version" v"$version" --draft --notes-file latestReleaseNotes.txt --prerelease KrankyBearClockWinAMD.zip KrankyBearClockMacOSAMD.zip KrankyBearClockMacOSARM.zip KrankyBearClockSetup.exe KrankyBearClockARM.dmg KrankyBearClockIntel.dmg
 
 echo "Created draft release $version"

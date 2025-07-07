@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -13,6 +14,12 @@ import (
 	"time"
 
 	"github.com/IamFaizanKhalid/lock"
+	"github.com/go-vgo/robotgo"
+	_ "github.com/go-vgo/robotgo/base"
+	_ "github.com/go-vgo/robotgo/key"
+	_ "github.com/go-vgo/robotgo/mouse"
+	_ "github.com/go-vgo/robotgo/screen"
+	_ "github.com/go-vgo/robotgo/window"
 	"github.com/itchyny/volume-go"
 
 	"fyne.io/fyne/v2"
@@ -29,7 +36,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.2" // see FyneApp.toml
+	appVersion = "0.4.3" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -60,6 +67,7 @@ var hourchime int
 var slockmute int
 var clockmutedvol int
 var automute int
+var jiggle int
 var currentvolume int
 var muteonhr int
 var muteonmin int
@@ -78,6 +86,7 @@ var utcsize int
 var hourchimesound string
 var startclock int
 var processName string
+var prefs string
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
@@ -116,7 +125,7 @@ func main() {
 	clock.SetMaster() // this sets this as master and closes all child windows
 	// clock.CenterOnScreen() // run centered on primary (laptop) display
 
-	prefs := strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
+	prefs = strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
 	if !checkFileExists(prefs) {
 		if debug == 1 {
 			log.Println("prefs file does not exist")
@@ -130,6 +139,7 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	jiggle = a.Preferences().IntWithFallback("jiggle.default", 0)
 	slockmute = a.Preferences().IntWithFallback("slockmute.default", 0)
 	automute = a.Preferences().IntWithFallback("automute.default", 0)
 	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
@@ -426,6 +436,25 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
 			makeSettingsTheme(a, clock, bg)
 		})
+		prefsEdit := fyne.NewMenuItem("Preferences manual edit", func() {
+			var cmd *exec.Cmd
+
+			switch runtime.GOOS {
+			case "windows":
+				cmd = exec.Command("cmd", "/d", "/c", "start", prefs)
+			case "darwin": // macOS
+				cmd = exec.Command("open", prefs)
+			case "linux":
+				cmd = exec.Command("xdg-open", prefs)
+			default:
+				fmt.Printf("Unsupported operating system: %s\n", runtime.GOOS)
+				return
+			}
+			err := cmd.Run()
+			if err != nil {
+				playBeep("down")
+			}
+		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
 			// throw away updateAvail here, use _, unneeded for manual check
 			updtmsg, _ := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
@@ -435,7 +464,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 				updt.RequestFocus()
 			}
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme)
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme, prefsEdit)
 		desk.SetSystemTrayMenu(menu)
 		desk.SetSystemTrayIcon(resourceKrankyBearBeretPng)
 		systray.SetTooltip(appName)
@@ -452,7 +481,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		})
 		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
 		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
-		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTheme)
+		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTheme, prefsEdit)
 		// New main menu
 		cmenu := fyne.NewMainMenu(newMenuOps, newMenuHelp, newMenuSettings)
 		// setup main menu
@@ -563,6 +592,14 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		fyne.Do(func() {
 			nowtime.Refresh()
 			nowdate.Refresh()
+			// add here to also override when mute turns on/off
+			// if screen is not locked and jiggle is on and minute modulo jiggle ...
+			if !lock.IsScreenLocked() && jiggle != 0 && now.Minute()%jiggle == 0 {
+				robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
+				robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
+				robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
+				robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+			}
 		})
 		nowdate.Text = now.Format(dateFormat)
 		if showutc == 1 {

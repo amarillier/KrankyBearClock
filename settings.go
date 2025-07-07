@@ -127,6 +127,14 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			a.Preferences().SetInt("showhr12.default", showhr12)
 		})
 		showhr1224.Horizontal = true
+		jiggler := widget.NewRadioGroup([]string{"0", "5", "10", "15", "20", "30"}, func(value string) {
+			if debug == 1 {
+				log.Println("jiggler set to", value)
+			}
+			jiggle, _ = strconv.Atoi(value)
+			a.Preferences().SetInt("jiggle.default", jiggle)
+		})
+		jiggler.Horizontal = true
 		mute := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
 				log.Println("automute set to", value)
@@ -349,6 +357,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
+			jiggler.SetSelected("0")
 			lockmute.SetChecked(false)
 			mute.SetChecked(false)
 			muteonhr = 20
@@ -368,6 +377,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showtz.Refresh()
 			showut.Refresh()
 			showhr1224.Refresh()
+			jiggler.Refresh()
 			startatboot.Refresh()
 			lockmute.Refresh()
 			mute.Refresh()
@@ -415,6 +425,20 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		case 0:
 			showhr1224.SetSelected("24")
 		}
+		switch jiggle {
+		case 0:
+			jiggler.SetSelected("0")
+		case 5:
+			jiggler.SetSelected("5")
+		case 10:
+			jiggler.SetSelected("10")
+		case 15:
+			jiggler.SetSelected("15")
+		case 20:
+			jiggler.SetSelected("20")
+		case 30:
+			jiggler.SetSelected("30")
+		}
 		if automute == 1 {
 			mute.SetChecked(true)
 		} else {
@@ -446,6 +470,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Show Date", showdt),
 			widget.NewFormItem("Show UTC", showut),
 			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
+			widget.NewFormItem("Mouse jiggler", jiggler),
 			widget.NewFormItem("Auto Start at Boot", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
@@ -604,6 +629,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("showutc.default", 1)
 	a.Preferences().SetInt("showdate.default", 1)
 	a.Preferences().SetInt("showhr12.default", 1)
+	a.Preferences().SetInt("jiggle.default", 0)
 	a.Preferences().SetInt("hourchime.default", 1)
 	a.Preferences().SetInt("slockmute.default", 0)
 	a.Preferences().SetInt("automute.default", 0)
@@ -632,6 +658,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("showutc.default", showutc)
 	a.Preferences().SetInt("showdate.default", showdate)
 	a.Preferences().SetInt("showhr12.default", showhr12)
+	a.Preferences().SetInt("jiggle.default", jiggle)
 	a.Preferences().SetInt("hourchime.default", hourchime)
 	a.Preferences().SetInt("slockmute.default", slockmute)
 	a.Preferences().SetInt("automute.default", automute)
