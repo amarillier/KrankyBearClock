@@ -8,9 +8,9 @@ GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM
 # set executable icon
 ./setIcon.sh Resources/Images/KrankyBearBeret.png bin/MacOSARM64/KrankyBearClock
 
-# cp KrankyBearClock KrankyBearClock.app/Contents/MacOS
-cp bin/MacOSARM64/KrankyBearClock KrankyBearClock.app/Contents/MacOS
 test -f KrankyBearClockARM.dmg && rm KrankyBearClockARM.dmg
+unzip -o clock.zip
+cp bin/MacOSARM64/KrankyBearClock KrankyBearClock.app/Contents/MacOS
 #   --volicon "KrankyBearClock.icns" \
 create-dmg \
   --volname "KrankyBearClock" \
@@ -25,6 +25,7 @@ create-dmg \
   "KrankyBearClock.app"
   # --add-file KrankyBearClock.app ./KrankyBearClock.app
   # "./"
+rm -rf KrankyBearClock.app
 
 # set dmg icon
 ./setIcon.sh Resources/Images/KrankyBearBeret.png KrankyBearClockARM.dmg

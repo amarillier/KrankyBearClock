@@ -7,9 +7,9 @@ GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD
 # set executable icon
 ./setIcon.sh Resources/Images/KrankyBearBeret.png bin/MacOSAMD64/KrankyBearClock
 
-cp bin/MacOSAMD64/KrankyBearClock KrankyBearClock.app/Contents/MacOS
-
 test -f KrankyBearClockIntel.dmg && rm KrankyBearClockIntel.dmg
+unzip -o clock.zip
+cp bin/MacOSAMD64/KrankyBearClock KrankyBearClock.app/Contents/MacOS
 #   --volicon "KrankyBearClock.icns" \
 create-dmg \
   --volname "KrankyBearClock" \
@@ -24,6 +24,7 @@ create-dmg \
   "KrankyBearClock.app"
   # --add-file KrankyBearClock.app ./KrankyBearClock.app
   # "./"
+  rm -rf KrankyBearClock.app
 
 # set dmg icon
 ./setIcon.sh Resources/Images/KrankyBearBeret.png KrankyBearClockIntel.dmg

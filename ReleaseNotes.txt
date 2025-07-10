@@ -8,10 +8,11 @@ Release notes
 - Possibly add homebrew / choco packages
 - audio.go and util.go to a separate module, they are identical between apps
 
-0.4.3 (not yet published)
+
+0.4.3
 - Manual preferences edit, menu item - be cautious using this, GUI settings is safer
 - Mouse jiggler - we all know what that means! Don't be reckless, lock your computer
-- 
+- Portable versions, executables named simply clock, clock.exe inside the .zip files
 
 
 0.4.2

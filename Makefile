@@ -80,11 +80,12 @@ macarm64:
 winamd64:
 	go-winres make
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r KrankyBearClock.rc" -o bin/WinAMD64/
+	echo "Now take this to Windows and run it through innoBuiltIntel.ps1"
 .PHONY:winamd64
 
 winarm64:
 	go-winres make
-	GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r KrankyBearClock.rc" -o bin/WinARM64/
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="aarch64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r KrankyBearClock.rc" -o bin/WinARM64/
 .PHONY:winarm64
 
 

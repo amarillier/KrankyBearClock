@@ -4,17 +4,22 @@ version="0.4.3"
 cp README.md installers/KrankyBearClock/Resources
 cp ReleaseNotes.txt installers/KrankyBearClock/Resources
 cd installers || exit
-cp ../bin/WinAMD64/KrankyBearClock.exe KrankyBearClock
+rm KrankyBearClock/clock*
+
+cp ../bin/WinAMD64/KrankyBearClock.exe KrankyBearClock/clock.exe
 zip -r KrankyBearClockWinAMD.zip KrankyBearClock
-rm KrankyBearClock/KrankyBearClock.exe
+rm KrankyBearClock/clock.exe
+#rm KrankyBearClock/KrankyBearClock.exe
 
-cp ../bin/MacOSAMD64/KrankyBearClock KrankyBearClock
+cp ../bin/MacOSAMD64/KrankyBearClock KrankyBearClock/clock
 zip -r KrankyBearClockMacOSAMD.zip KrankyBearClock
-rm KrankyBearClock/KrankyBearClock
+rm KrankyBearClock/clock
+#rm KrankyBearClock/KrankyBearClock
 
-cp ../bin/MacOSARM64/KrankyBearClock KrankyBearClock
+cp ../bin/MacOSARM64/KrankyBearClock KrankyBearClock/clock
 zip -r KrankyBearClockMacOSARM.zip KrankyBearClock
-rm KrankyBearClock/KrankyBearClock
+rm KrankyBearClock/clock
+#rm KrankyBearClock/KrankyBearClock
 
 # see gh docs: https://cli.github.com/manual/gh_release_create
 awk '/0.4.3/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt

@@ -68,6 +68,7 @@ var slockmute int
 var clockmutedvol int
 var automute int
 var jiggle int
+var jiggleconf int
 var currentvolume int
 var muteonhr int
 var muteonmin int
