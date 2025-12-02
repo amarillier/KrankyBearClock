@@ -32,7 +32,6 @@ cp ../bin/KrankyBearClock-linux-arm64 KrankyBearClock/clock
 zip -r KrankyBearClockLinuxARM64.zip KrankyBearClock
 rm KrankyBearClock/clock
 
-exit
 # see gh docs: https://cli.github.com/manual/gh_release_create
 awk '/0.4.4/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt
 gh release create --title v"$version" v"$version" --draft --notes-file latestReleaseNotes.txt --prerelease KrankyBearClockLinuxAMD64.zip KrankyBearClock_0.4.4-1_aarch64.rpm KrankyBearClockLinuxARM64.zip KrankyBearClock_0.4.4-1_amd64.deb KrankyBearClockMacOSAMD64.zip KrankyBearClock_0.4.4-1_amd64.pkg KrankyBearClockMacOSARM64.zip KrankyBearClock_0.4.4-1_arm64.deb KrankyBearClockSetup.exe KrankyBearClock_0.4.4-1_arm64.pkg KrankyBearClockWinAMD.zip KrankyBearClock_0.4.4-1_x86_64.rpm
