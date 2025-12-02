@@ -24,6 +24,7 @@ Resources/*.txt
 Resources/*/notUsed
 ResourcesUnused
 latestcheck.json
+DEPRECATED/*
 
 # Distribution / packaging
 *.zip

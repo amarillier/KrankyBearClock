@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 	"net/url"
 	"os"
@@ -12,15 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/IamFaizanKhalid/lock"
-	"github.com/go-vgo/robotgo"
-	_ "github.com/go-vgo/robotgo/base"
-	_ "github.com/go-vgo/robotgo/key"
-	_ "github.com/go-vgo/robotgo/mouse"
-	_ "github.com/go-vgo/robotgo/screen"
-	_ "github.com/go-vgo/robotgo/window"
-	"github.com/itchyny/volume-go"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -36,7 +26,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.3" // see FyneApp.toml
+	appVersion = "0.4.4" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -54,9 +44,22 @@ var settingsth fyne.Window
 var abt fyne.Window
 var updt fyne.Window
 var hlp fyne.Window
+var countdown fyne.Window
+
+// alarmWindow is declared in alarm.go
+
+// Countdown window elements for dynamic color updates
+var countdownTitleText *canvas.Text
+var countdownHelpText *canvas.Text
+var countdownBackground *canvas.Rectangle
+var countdownDaysText1 *canvas.Text
+var countdownDaysText2 *canvas.Text
+var countdownDaysText3 *canvas.Text
 
 // var egg fyne.Window
 var bg fyne.Canvas
+
+// Clock display elements are declared in clock.go
 
 var showseconds int
 var showtimezone int
@@ -85,9 +88,41 @@ var timesize int
 var datesize int
 var utcsize int
 var hourchimesound string
+var lastChimeHour int = -1                      // Track last hour when chime played to prevent double playback
+var clockUpdateLoopRunning bool = false         // Prevent multiple update loops from running
+var clockUpdateLoopStop chan bool               // Channel to stop the update loop
+var timezoneLocations map[string]*time.Location // Cache timezone locations
+var hourChimeFileExists bool = false            // Cache file existence check
+var hourChimeFileChecked bool = false           // Track if we've checked the file
+var hourChimeCachedFile string = ""             // Track which file was cached
 var startclock int
 var processName string
 var prefs string
+
+// Countdown dates (up to 3)
+var countdownDate1 string
+var countdownDesc1 string
+var countdownDate2 string
+var countdownDesc2 string
+var countdownDate3 string
+var countdownDesc3 string
+
+// Additional timezones (up to 5)
+var timezone1Enabled int
+var timezone1Name string
+var timezone1Offset string // UTC offset (e.g., "+5", "-3.5")
+var timezone2Enabled int
+var timezone2Name string
+var timezone2Offset string
+var timezone3Enabled int
+var timezone3Name string
+var timezone3Offset string
+var timezone4Enabled int
+var timezone4Name string
+var timezone4Offset string
+var timezone5Enabled int
+var timezone5Name string
+var timezone5Offset string
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearClock/preferences.json
@@ -116,9 +151,16 @@ func main() {
 	}
 
 	a := app.NewWithID("com.github.amarillier.KrankyBearClock")
+	// Initialize speaker at startup for faster audio
+	initSpeaker()
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	clock = a.NewWindow(appName)
-	clock.SetIcon(resourceKrankyBearBeretPng)
+	_, month, _ := time.Now().Date()
+	if month == time.December {
+		clock.SetIcon(resourceKrankyBearChristmasGrinchPng)
+	} else {
+		clock.SetIcon(resourceKrankyBearBeretPng)
+	}
 	clock.SetPadded(false)
 	//clock.SetCloseIntercept(func() {
 	//	a.Quit() // force quit, normal when somebody hits "x" to close
@@ -160,52 +202,43 @@ func main() {
 	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
 	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
+
+	// Load countdown dates
+	countdownDate1 = a.Preferences().StringWithFallback("countdown.date1", "")
+	countdownDesc1 = a.Preferences().StringWithFallback("countdown.desc1", "")
+	countdownDate2 = a.Preferences().StringWithFallback("countdown.date2", "")
+	countdownDesc2 = a.Preferences().StringWithFallback("countdown.desc2", "")
+	countdownDate3 = a.Preferences().StringWithFallback("countdown.date3", "")
+	countdownDesc3 = a.Preferences().StringWithFallback("countdown.desc3", "")
+
+	// Load additional timezones
+	timezone1Enabled = a.Preferences().IntWithFallback("timezone1.enabled", 0)
+	timezone1Name = a.Preferences().StringWithFallback("timezone1.name", "")
+	timezone1Offset = a.Preferences().StringWithFallback("timezone1.offset", "")
+	timezone2Enabled = a.Preferences().IntWithFallback("timezone2.enabled", 0)
+	timezone2Name = a.Preferences().StringWithFallback("timezone2.name", "")
+	timezone2Offset = a.Preferences().StringWithFallback("timezone2.offset", "")
+	timezone3Enabled = a.Preferences().IntWithFallback("timezone3.enabled", 0)
+	timezone3Name = a.Preferences().StringWithFallback("timezone3.name", "")
+	timezone3Offset = a.Preferences().StringWithFallback("timezone3.offset", "")
+	timezone4Enabled = a.Preferences().IntWithFallback("timezone4.enabled", 0)
+	timezone4Name = a.Preferences().StringWithFallback("timezone4.name", "")
+	timezone4Offset = a.Preferences().StringWithFallback("timezone4.offset", "")
+	timezone5Enabled = a.Preferences().IntWithFallback("timezone5.enabled", 0)
+	timezone5Name = a.Preferences().StringWithFallback("timezone5.name", "")
+	timezone5Offset = a.Preferences().StringWithFallback("timezone5.offset", "")
+
+	// Load alarms and start alarm checker
+	loadAlarms(a)
+	startAlarmChecker(a)
+
+	// Load weather settings and start weather refresh if enabled
+	loadWeatherSettings(a)
+	startWeatherRefresh(a)
+
 	writeSettings(a)
 
 	clockmutedvol = 0
-	var tre, tgr, tbl, ta uint8
-	colors := strings.Split(timecolor, ",")
-	col, _ := strconv.ParseUint(colors[0], 10, 8)
-	tre = uint8(col)
-	col, _ = strconv.ParseUint(colors[1], 10, 8)
-	tgr = uint8(col)
-	col, _ = strconv.ParseUint(colors[2], 10, 8)
-	tbl = uint8(col)
-	col, _ = strconv.ParseUint(colors[3], 10, 8)
-	ta = uint8(col)
-
-	var bre, bgr, bbl, ba uint8
-	colors = strings.Split(bgcolor, ",")
-	col, _ = strconv.ParseUint(colors[0], 10, 8)
-	bre = uint8(col)
-	col, _ = strconv.ParseUint(colors[1], 10, 8)
-	bgr = uint8(col)
-	col, _ = strconv.ParseUint(colors[2], 10, 8)
-	bbl = uint8(col)
-	col, _ = strconv.ParseUint(colors[3], 10, 8)
-	ba = uint8(col)
-
-	var dre, dgr, dbl, da uint8
-	colors = strings.Split(datecolor, ",")
-	col, _ = strconv.ParseUint(colors[0], 10, 8)
-	dre = uint8(col)
-	col, _ = strconv.ParseUint(colors[1], 10, 8)
-	dgr = uint8(col)
-	col, _ = strconv.ParseUint(colors[2], 10, 8)
-	dbl = uint8(col)
-	col, _ = strconv.ParseUint(colors[3], 10, 8)
-	da = uint8(col)
-
-	var ure, ugr, ubl, ua uint8
-	colors = strings.Split(utccolor, ",")
-	col, _ = strconv.ParseUint(colors[0], 10, 8)
-	ure = uint8(col)
-	col, _ = strconv.ParseUint(colors[1], 10, 8)
-	ugr = uint8(col)
-	col, _ = strconv.ParseUint(colors[2], 10, 8)
-	ubl = uint8(col)
-	col, _ = strconv.ParseUint(colors[3], 10, 8)
-	ua = uint8(col)
 
 	if len(os.Args) >= 2 {
 		log.Println("arg count:", len(os.Args))
@@ -273,13 +306,22 @@ func main() {
 			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
 
 			kb := canvas.NewImageFromResource(resourceKrankyBearBeretPng)
+			_, month, _ := time.Now().Date()
+			if month == time.December {
+				kb = canvas.NewImageFromResource(resourceKrankyBearChristmasGrinchPng)
+			}
 			text := widget.NewLabel(aboutText)
 			kb.FillMode = canvas.ImageFillOriginal
 			content := container.NewHBox(kb, text)
 
 			if abt == nil || !abt.Content().Visible() {
 				abt = a.NewWindow(appName + ": About")
-				abt.SetIcon(resourceKrankyBearBeretPng)
+				_, month, _ := time.Now().Date()
+				if month == time.December {
+					abt.SetIcon(resourceKrankyBearChristmasGrinchPng)
+				} else {
+					abt.SetIcon(resourceKrankyBearBeretPng)
+				}
 				abt.Resize(fyne.NewSize(50, 100))
 				// abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetContent(content)
@@ -298,7 +340,12 @@ func main() {
 			// if hlp != nil { // &&  !hlp.Content().Visible() {
 			if hlp == nil || !hlp.Content().Visible() {
 				hlp = a.NewWindow(appName + ": Help")
-				hlp.SetIcon(resourceKrankyBearBeretPng)
+				_, month, _ := time.Now().Date()
+				if month == time.December {
+					hlp.SetIcon(resourceKrankyBearChristmasGrinchPng)
+				} else {
+					hlp.SetIcon(resourceKrankyBearBeretPng)
+				}
 
 				hlp.SetCloseIntercept(func() {
 					hlp.Close()
@@ -312,12 +359,14 @@ func main() {
 - optional timezone
 - optional date in full day name, month date #, 4 digit year
 - optional UTC time and time zone offset in hours
+- optional additional time zones (up to 5)
 - optional hourly chime with user selectable sound
 	- ideally chose a very short chime sound, less than half second
 - customizable font sizes for each of time, date and UTC time
 - customizable font color for each of background, time, date and UTC time
 - clock display window resizes automatically to suit selected font sizes
 - optional setting to enable auto starting at boot
+- countdown days to future dates - up to 3 future dates
 
 - Note: Displaying seconds can be quite resource intensive with clock display updates every second. 
   The app can be substantially less CPU intensive when seconds are not displayed, allowing the app to
@@ -331,9 +380,7 @@ func main() {
 				hlpText += "\n" + appCopyright
 				hlpText += "\n\n" + appAuthor + ", using Go and fyne GUI"
 
-				plnText := `- Allow multiple time zones for clock, hh:mm only + offset
-- Allow multiple alarm times with user selectable tones for each
-- Allow settings set/save window locations to open clock, 
+				plnText := `- Allow settings set/save window locations to open clock, 
 	unfortunately not implemented in the fyne library yet
 - Open with clock window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
@@ -352,9 +399,7 @@ func main() {
 	until Help, About, Settings etc are selected
 	- But clock does continue to run, fix to run systray, settings etc in parallel
 - Font type settings in preferences are currently ignored, the app uses system theme defaults. (Future planned update)
-- Settings changes to background and clock default times are saved immediately.
-	- but clock time format size and color, date size and color and background do
-	not currently refresh to new settings - exit and rerun for now
+- Settings changes are saved immediately and clock display colors and sizes now update automatically.
 `
 				link, err := url.Parse("https://github.com/amarillier/KrankyBearClock/blob/main/license.txt")
 				if err != nil {
@@ -437,6 +482,15 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
 			makeSettingsTheme(a, clock, bg)
 		})
+		countdownDates := fyne.NewMenuItem("Countdown Dates", func() {
+			makeCountdownDates(a, clock, bg)
+		})
+		alarmsMenu := fyne.NewMenuItem("Alarms", func() {
+			makeAlarmsWindow(a, clock, bg)
+		})
+		weatherMenu := fyne.NewMenuItem("Weather", func() {
+			makeWeatherWindow(a, clock, bg)
+		})
 		prefsEdit := fyne.NewMenuItem("Preferences manual edit", func() {
 			var cmd *exec.Cmd
 
@@ -465,9 +519,14 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 				updt.RequestFocus()
 			}
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme, prefsEdit)
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, alarmsMenu, countdownDates, weatherMenu, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTheme, prefsEdit)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceKrankyBearBeretPng)
+		_, month, _ := time.Now().Date()
+		if month == time.December {
+			desk.SetSystemTrayIcon(resourceKrankyBearChristmasGrinchPng)
+		} else {
+			desk.SetSystemTrayIcon(resourceKrankyBearBeretPng)
+		}
 		systray.SetTooltip(appName)
 		// systray.SetTitle(clockName)
 
@@ -480,7 +539,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		quit := fyne.NewMenuItem("Quit", func() {
 			a.Quit()
 		})
-		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
+		newMenuOps := fyne.NewMenu("Operations", show, hide, alarmsMenu, countdownDates, weatherMenu, fyne.NewMenuItemSeparator(), quit)
 		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTheme, prefsEdit)
 		// New main menu
@@ -490,159 +549,8 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		// cmenu.Refresh()
 	}
 
-	now := time.Now()
-	// timeFormat := `15:04:05`
-	// timeFormat := `3:04:05 PM (MST)`
-	timeFormat := ``
-	if showhr12 == 1 {
-		timeFormat += `3:04`
-	} else {
-		timeFormat += `15:04`
-	}
-	if showseconds == 1 {
-		timeFormat += `:05`
-	}
-	if showhr12 == 1 {
-		timeFormat += ` PM` // this needs to be added AFTER seconds if 12 hour
-	}
-	if showtimezone == 1 {
-		timeFormat += ` (MST)`
-	}
-
-	// Get the local time zone and offset
-	_, offset := now.Zone()
-	offsetHours := offset / 3600
-	offsetMinutes := (offset % 3600) / 60
-	offsetString := fmt.Sprintf(" (local is  %+02d:%02d)", offsetHours, offsetMinutes)
-	// utcFormat := `(UTC 3:04 PM Z07)`
-	utcFormat := `UTC 3:04 PM`
-	dateFormat := ` Monday, January 2, 2006 `
-
-	// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
-	nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: tre, G: tgr, B: tbl, A: ta})
-	nowtime.TextStyle = fyne.TextStyle{Bold: true}
-	// nowtime.TextStyle = fyne.TextStyle{Monospace: true} // EXAMPLE FONT TYPE
-	nowtime.Alignment = fyne.TextAlignCenter
-	nowtime.TextSize = float32(timesize)
-
-	// utctime := canvas.NewText(now.Format(utcFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
-	utctime := canvas.NewText(now.Format(utcFormat), color.RGBA{R: ure, G: ugr, B: ubl, A: ua})
-	utctime.TextStyle = fyne.TextStyle{Bold: true}
-	utctime.Alignment = fyne.TextAlignCenter
-	utctime.TextSize = float32(utcsize)
-
-	// nowdate := canvas.NewText(now.Format(dateFormat), color.RGBA{R: 208, G: 145, B: 38, A: 255})
-	nowdate := canvas.NewText(now.Format(dateFormat), color.RGBA{R: dre, G: dgr, B: dbl, A: da})
-	nowdate.TextStyle = fyne.TextStyle{Bold: true}
-	nowdate.Alignment = fyne.TextAlignCenter
-	nowdate.TextSize = float32(datesize)
-
-	//background := canvas.NewRectangle(color.RGBA{R: 0, G: 0, B: 255, A: 255})
-	// bgcolor := color.RGBA{R: 0, G: 143, B: 251, A: 255}
-	bgcolor := color.RGBA{R: bre, G: bgr, B: bbl, A: ba}
-	background := canvas.NewRectangle(bgcolor)
-
-	vbox := container.NewVBox()
-	if showutc == 1 {
-		if showdate == 1 {
-			vbox = container.NewVBox(nowtime, nowdate, utctime)
-		} else {
-			vbox = container.NewVBox(nowtime, utctime)
-		}
-	} else {
-		if showdate == 1 {
-			vbox = container.NewVBox(nowtime, nowdate)
-		} else {
-			vbox = container.NewVBox(nowtime)
-		}
-	}
-	content := container.NewStack(background, vbox)
-	// content := container.NewStack(background, container.NewVBox(nowtime, nowdate, utctime))
-
-	updateClock := func() {
-		now = time.Now()
-		if now.Hour() == muteonhr && now.Minute() == muteonmin && now.Second() == 0 {
-			if automute == 1 {
-				muted, _ := volume.GetMuted()
-				if !muted {
-					currentvolume, _ = volume.GetVolume()
-					volume.Mute()
-				}
-			}
-		} else if now.Hour() == muteoffhr && now.Minute() == muteoffmin && now.Second() == 0 {
-			if automute == 1 {
-				muted, _ := volume.GetMuted()
-				if muted {
-					volume.Unmute()
-					// volume.SetVolume(20)
-					volume.SetVolume(currentvolume)
-				}
-			}
-		}
-		if now.Minute() == 0 && now.Second() == 0 {
-			if hourchime == 1 {
-				if !checkFileExists(sndDir + "/" + hourchimesound) {
-					playBeep("updown")
-				} else {
-					playMp3(sndDir + "/" + hourchimesound)
-				}
-			}
-		}
-
-		nowtime.Text = now.Format(timeFormat)
-		fyne.Do(func() {
-			nowtime.Refresh()
-			nowdate.Refresh()
-			// add here to also override when mute turns on/off
-			// if screen is not locked and jiggle is on and minute modulo jiggle ...
-			if !lock.IsScreenLocked() && jiggle != 0 && now.Minute()%jiggle == 0 {
-				robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
-				robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
-				robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
-				robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
-			}
-		})
-		nowdate.Text = now.Format(dateFormat)
-		if showutc == 1 {
-			utc := now.UTC()
-			utctime.Text = utc.Format(utcFormat) + offsetString
-			fyne.Do(func() {
-				utctime.Refresh()
-			})
-		}
-	}
-
-	updateClock()
-	go func() {
-		for range time.Tick(time.Second) {
-			// updating frequently is something of a resource hog (CPU)
-			// check here if seconds are displayed, update
-			// if seconds are not displayed, check for seconds == 0
-			// at the minute change, and only update the clock then
-			now = time.Now()
-			if showseconds == 1 || now.Second() == 0 {
-				updateClock()
-			}
-			// lock screen / mute volume event handler, but only if enabled
-			// and only unmute if we auto muted. If user had already muted, don't
-			if slockmute == 1 {
-				if lock.IsScreenLocked() {
-					muted, _ := volume.GetMuted()
-					if !muted {
-						clockmutedvol = 1
-						volume.Mute()
-					}
-				} else {
-					lockmuted, _ := volume.GetMuted()
-					if lockmuted && clockmutedvol == 1 {
-						clockmutedvol = 0
-						volume.Unmute()
-					}
-				}
-			}
-		}
-	}()
-
+	// Initialize clock display
+	content := InitializeClockDisplay(a, clock)
 	clock.SetContent(content)
 	clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
 	// clock.Resize(fyne.NewSize(300, 200))
@@ -689,7 +597,12 @@ func updateAlert(a fyne.App, updtmsg string) {
 	text := widget.NewLabel(updtmsg)
 	content := container.NewVBox(kbimg, text, myreleaselink, myreleasenoteslink)
 	updt = a.NewWindow(appName + ": Update Check")
-	updt.SetIcon(resourceKrankyBearBeretPng)
+	_, month, _ := time.Now().Date()
+	if month == time.December {
+		updt.SetIcon(resourceKrankyBearChristmasGrinchPng)
+	} else {
+		updt.SetIcon(resourceKrankyBearBeretPng)
+	}
 	updt.Resize(fyne.NewSize(50, 100))
 	updt.SetContent(content)
 	updt.SetCloseIntercept(func() {
@@ -701,22 +614,3 @@ func updateAlert(a fyne.App, updtmsg string) {
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
-
-// To-do:
-
-// a few notes, format specific
-// timeFormat := `3:04:05 PM (MST)`
-// clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
-// clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
-
-// show seconds
-// clockFormat := `15:04:05
-//Monday, January 2, 2006`
-
-// no show seconds - not always valuable when we update every second
-// anyway, but still - user preference ...
-// clockFormat := `15:04`
-//clockFormat := `15:04
-//   Monday, January 2, 2006`
-//clock.SetText(now.Format(clockFormat))
-//clock.Alignment = fyne.TextAlignCenter

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/gopxl/beep/v2"
@@ -12,7 +13,18 @@ import (
 	"github.com/gopxl/beep/v2/wav"
 )
 
+var speakerInitialized = false
+var speakerInitOnce sync.Once
+var speakerSampleRate beep.SampleRate = 44100
+var soundAvailable = true
+
 func playMp3(name string) {
+	// Ensure speaker is initialized (safe to call multiple times via sync.Once)
+	initSpeaker()
+	if !soundAvailable {
+		return
+	}
+
 	f, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
@@ -24,6 +36,7 @@ func playMp3(name string) {
 		log.Println("playing: ", name)
 	}
 	streamer, format, err := mp3.Decode(f)
+	//streamer, _, err := mp3.Decode(f)
 	if err != nil {
 		log.Fatal(err)
 		playBeep("up")
@@ -31,10 +44,11 @@ func playMp3(name string) {
 	}
 	defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	// Resample if needed to match pre-initialized speaker sample rate
+	resampled := beep.Resample(4, format.SampleRate, speakerSampleRate, streamer)
 
 	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+	speaker.Play(beep.Seq(resampled, beep.Callback(func() {
 		done <- true
 	})))
 
@@ -43,7 +57,6 @@ func playMp3(name string) {
 
 func playMid(name string) {
 	// not using for now - soundfont is ridiculously big
-	return
 	/*
 		var sampleRate beep.SampleRate = 44100
 
@@ -78,6 +91,12 @@ func playMid(name string) {
 }
 
 func playWav(name string) {
+	// Ensure speaker is initialized (safe to call multiple times via sync.Once)
+	initSpeaker()
+	if !soundAvailable {
+		return
+	}
+
 	f, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
@@ -93,10 +112,11 @@ func playWav(name string) {
 	}
 	defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	// Resample if needed to match pre-initialized speaker sample rate
+	resampled := beep.Resample(4, format.SampleRate, speakerSampleRate, streamer)
 
 	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+	speaker.Play(beep.Seq(resampled, beep.Callback(func() {
 		done <- true
 	})))
 
@@ -105,8 +125,13 @@ func playWav(name string) {
 
 func playBeep(style string) {
 	// accept updown, up, down, ding
-	sr := beep.SampleRate(48000)
-	speaker.Init(sr, 4800)
+	// Ensure speaker is initialized (safe to call multiple times via sync.Once)
+	initSpeaker()
+	if !soundAvailable {
+		return
+	}
+
+	sr := speakerSampleRate // Use the pre-initialized sample rate
 
 	ch := make(chan struct{})
 	buzzer1, _ := generators.SawtoothTone(sr, float64(750))
@@ -173,6 +198,21 @@ func playBeep(style string) {
 		speaker.Play(beep.Seq(buzz...))
 		<-ch
 	}
+}
+
+func initSpeaker() {
+	speakerInitOnce.Do(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// Audio backend not available (e.g., missing ALSA); disable sound gracefully
+				soundAvailable = false
+				speakerInitialized = false
+			}
+		}()
+		speaker.Init(speakerSampleRate, speakerSampleRate.N(time.Second/10))
+		speakerInitialized = true
+		soundAvailable = true
+	})
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
