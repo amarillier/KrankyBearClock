@@ -14,7 +14,9 @@ templates/*
 test/*
 tst/*
 bin/*
+*.sh
 installers/*
+installers2/*
 KrankyBearClock.app
 KrankyBearClock
 KrankyBearClock.exe
@@ -42,4 +44,3 @@ vendor/*
 # ALLOW example
 !MicrosoftDefender.zip
 !packages/7z*
-!installers/*

@@ -30,7 +30,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile=C:\Allan\Source\go\KrankyBearClock\license.txt
+LicenseFile=C:\Allan\Source\go\KrankyBearClock\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog

@@ -26,7 +26,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.4" // see FyneApp.toml
+	appVersion = "0.4.5" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -72,6 +72,7 @@ var clockmutedvol int
 var automute int
 var jiggle int
 var jiggleconf int
+var lastJiggleMinute = -1
 var currentvolume int
 var muteonhr int
 var muteonmin int

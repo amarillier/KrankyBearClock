@@ -133,6 +133,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			jiggle, _ = strconv.Atoi(value)
 			a.Preferences().SetInt("jiggle.default", jiggle)
+			lastJiggleMinute = -1
 		})
 		jiggler.Horizontal = true
 		mute := widget.NewCheck("", func(value bool) {
@@ -537,6 +538,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
 			jiggler.SetSelected("0")
+			lastJiggleMinute = -1
 			lockmute.SetChecked(false)
 			mute.SetChecked(false)
 			muteonhr = 18
@@ -670,25 +672,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		// Now create buttonRow after reset button is initialized
 		buttonRow = container.NewCenter(container.NewHBox(container.NewCenter(reset), container.NewCenter(close)))
 
-		setform := widget.NewForm(
-			widget.NewFormItem("Show Seconds", showsec),
-			widget.NewFormItem("Show Timezone", showtz),
-			widget.NewFormItem("Show Date", showdt),
-			widget.NewFormItem("Show UTC", showut),
-			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
-			widget.NewFormItem("Mouse jiggler", jiggler),
-			widget.NewFormItem("Auto Start at Boot", startatboot),
-			widget.NewFormItem("Hourly Chime", chime),
-			widget.NewFormItem("Hourly Chime Sound", chimesound),
-			widget.NewFormItem("Lock Mute Volume", lockmute),
-			widget.NewFormItem("Auto Mute Volume", mute),
-			widget.NewFormItem("Additional Timezones", widget.NewLabel("")),
-			tz1Row,
-			tz2Row,
-			tz3Row,
-			tz4Row,
-			tz5Row,
-		)
 		muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
 		muteonbutton = widget.NewButton("Mute: "+muteonlabel, func() {
 			muteon := selectTime(a, w, bg, "muteon", muteonhr, muteonmin)
@@ -708,8 +691,27 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			// a.Preferences().SetInt("muteoffhr.default", muteoffhr)
 			// a.Preferences().SetInt("muteoffmin.default", muteoffmin)
 		})
-		mwidget := container.NewHBox(
-			muteonbutton, muteoffbutton)
+		mwidget := container.NewHBox(muteonbutton, muteoffbutton)
+		autoMuteSection := container.NewVBox(mute, mwidget)
+		setform := widget.NewForm(
+			widget.NewFormItem("Show Seconds", showsec),
+			widget.NewFormItem("Show Timezone", showtz),
+			widget.NewFormItem("Show Date", showdt),
+			widget.NewFormItem("Show UTC", showut),
+			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
+			widget.NewFormItem("Mouse jiggler", jiggler),
+			widget.NewFormItem("Auto Start at Boot", startatboot),
+			widget.NewFormItem("Hourly Chime", chime),
+			widget.NewFormItem("Hourly Chime Sound", chimesound),
+			widget.NewFormItem("Lock Mute Volume", lockmute),
+			widget.NewFormItem("Auto Mute Volume", autoMuteSection),
+			widget.NewFormItem("Additional Timezones", widget.NewLabel("")),
+			tz1Row,
+			tz2Row,
+			tz3Row,
+			tz4Row,
+			tz5Row,
+		)
 		tcbutton := widget.NewButton("Time Color", func() {
 			tcolor := colorPicker(settingsc, "time", a)
 			if debug == 1 {
@@ -752,7 +754,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			ucbutton)
 
 		display := widget.NewForm(
-			widget.NewFormItem("", mwidget),
 			widget.NewFormItem("Time size", twidget),
 			widget.NewFormItem("Date size", dwidget),
 			widget.NewFormItem("UTC size", uwidget),

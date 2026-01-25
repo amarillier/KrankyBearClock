@@ -1,9 +1,14 @@
 Release notes
 
 0.4.NEXT
-- Possibly add homebrew / choco packages
+- Possibly add homebrew / choco / Ubuntu snap packages
 - iPhone / Android compile
 
+
+0.4.5
+- Minor change in clock settings to position auto mute / unmute time widgets directly under the auto mute volume checkbox
+- Improved jiggler logic
+- 
 
 0.4.4
 - jiggler connected to mute on/off to stop jiggling when auto mute activates

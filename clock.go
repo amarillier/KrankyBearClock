@@ -60,6 +60,7 @@ func InitializeClockDisplay(a fyne.App, clockWindow fyne.Window) fyne.CanvasObje
 	offsetMinutes := (offset % 3600) / 60
 	offsetString := fmt.Sprintf(" (local is  %+02d:%02d)", offsetHours, offsetMinutes)
 	utcFormat := `UTC 3:04 PM`
+	nonutcFormat := `3:04 PM`
 	dateFormat := ` Monday, January 2, 2006 `
 
 	// Parse colors
@@ -201,7 +202,7 @@ func InitializeClockDisplay(a fyne.App, clockWindow fyne.Window) fyne.CanvasObje
 	content := container.NewStack(background, vbox)
 
 	// Start clock update loop
-	StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat)
+	StartClockUpdateLoop(offsetString, timeFormat, utcFormat, nonutcFormat, dateFormat)
 
 	return content
 }
@@ -245,20 +246,20 @@ var parseUTCOffset = func(offsetStr string) (hours int, minutes int, valid bool)
 	return hours, minutes, true
 }
 
-var formatTimezoneTime = func(tzTime time.Time, tzName string, utcFormat string) string {
+var formatTimezoneTime = func(tzTime time.Time, tzName string, nonutcFormat string) string {
 	_, tzOffset := tzTime.Zone()
 	tzOffsetHours := tzOffset / 3600
 	tzOffsetMinutes := (tzOffset % 3600) / 60
 	tzOffsetString := fmt.Sprintf(" (%s %+02d:%02d)", tzName, tzOffsetHours, tzOffsetMinutes)
-	return tzTime.Format(utcFormat) + tzOffsetString
+	return tzTime.Format(nonutcFormat) + tzOffsetString
 }
 
-var formatTimezoneTimeFromOffset = func(tzTime time.Time, offsetHours int, offsetMinutes int, offsetLabel string, utcFormat string) string {
+var formatTimezoneTimeFromOffset = func(tzTime time.Time, offsetHours int, offsetMinutes int, offsetLabel string, nonutcFormat string) string {
 	tzOffsetString := fmt.Sprintf(" (UTC%+02d:%02d)", offsetHours, offsetMinutes)
 	if offsetLabel != "" {
 		tzOffsetString = fmt.Sprintf(" (%s UTC%+02d:%02d)", offsetLabel, offsetHours, offsetMinutes)
 	}
-	return tzTime.Format(utcFormat) + tzOffsetString
+	return tzTime.Format(nonutcFormat) + tzOffsetString
 }
 
 // getTimezoneLocation gets a timezone location, using cache if available
@@ -277,7 +278,7 @@ func getTimezoneLocation(tzName string) *time.Location {
 }
 
 // StartClockUpdateLoop starts the background goroutine that updates the clock display
-func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string) {
+func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, nonutcFormat, dateFormat string) {
 	// Stop existing loop if running
 	if clockUpdateLoopRunning && clockUpdateLoopStop != nil {
 		close(clockUpdateLoopStop)
@@ -296,6 +297,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				muted, _ := volume.GetMuted()
 				jiggleconf = jiggle
 				jiggle = 0 // disable jiggle while muted
+				lastJiggleMinute = -1
 				if !muted {
 					currentvolume, _ = volume.GetVolume()
 					volume.Mute()
@@ -305,6 +307,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			if automute == 1 {
 				muted, _ := volume.GetMuted()
 				jiggle = jiggleconf // restore jiggle value
+				lastJiggleMinute = -1
 				jiggleconf = 0
 				if muted {
 					volume.Unmute()
@@ -340,11 +343,17 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			nowdate.Refresh()
 			// add here to also override when mute turns on/off
 			// if screen is not locked and jiggle is on and minute modulo jiggle ...
-			if !lock.IsScreenLocked() && jiggle != 0 && now.Minute()%jiggle == 0 {
-				robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
-				robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
-				robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
-				robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+			if jiggle == 0 {
+				lastJiggleMinute = -1
+			}
+			if !lock.IsScreenLocked() && jiggle > 0 && now.Minute()%jiggle == 0 {
+				if now.Minute() != lastJiggleMinute {
+					robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
+					robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
+					robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
+					robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+					lastJiggleMinute = now.Minute()
+				}
 			}
 		})
 		nowdate.Text = now.Format(dateFormat)
@@ -365,7 +374,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				if valid {
 					offsetDuration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute
 					tzTime := utcTime.Add(offsetDuration)
-					timezone1Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", utcFormat)
+					timezone1Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", nonutcFormat)
 					fyne.Do(func() {
 						timezone1Text.Refresh()
 					})
@@ -374,7 +383,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				// Use timezone name (with caching)
 				if loc := getTimezoneLocation(timezone1Name); loc != nil {
 					tzTime := now.In(loc)
-					timezone1Text.Text = formatTimezoneTime(tzTime, timezone1Name, utcFormat)
+					timezone1Text.Text = formatTimezoneTime(tzTime, timezone1Name, nonutcFormat)
 					fyne.Do(func() {
 						timezone1Text.Refresh()
 					})
@@ -387,7 +396,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				if valid {
 					offsetDuration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute
 					tzTime := utcTime.Add(offsetDuration)
-					timezone2Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", utcFormat)
+					timezone2Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", nonutcFormat)
 					fyne.Do(func() {
 						timezone2Text.Refresh()
 					})
@@ -395,7 +404,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			} else if timezone2Name != "" {
 				if loc := getTimezoneLocation(timezone2Name); loc != nil {
 					tzTime := now.In(loc)
-					timezone2Text.Text = formatTimezoneTime(tzTime, timezone2Name, utcFormat)
+					timezone2Text.Text = formatTimezoneTime(tzTime, timezone2Name, nonutcFormat)
 					fyne.Do(func() {
 						timezone2Text.Refresh()
 					})
@@ -408,7 +417,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				if valid {
 					offsetDuration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute
 					tzTime := utcTime.Add(offsetDuration)
-					timezone3Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", utcFormat)
+					timezone3Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", nonutcFormat)
 					fyne.Do(func() {
 						timezone3Text.Refresh()
 					})
@@ -416,7 +425,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			} else if timezone3Name != "" {
 				if loc := getTimezoneLocation(timezone3Name); loc != nil {
 					tzTime := now.In(loc)
-					timezone3Text.Text = formatTimezoneTime(tzTime, timezone3Name, utcFormat)
+					timezone3Text.Text = formatTimezoneTime(tzTime, timezone3Name, nonutcFormat)
 					fyne.Do(func() {
 						timezone3Text.Refresh()
 					})
@@ -429,7 +438,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				if valid {
 					offsetDuration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute
 					tzTime := utcTime.Add(offsetDuration)
-					timezone4Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", utcFormat)
+					timezone4Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", nonutcFormat)
 					fyne.Do(func() {
 						timezone4Text.Refresh()
 					})
@@ -437,7 +446,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			} else if timezone4Name != "" {
 				if loc := getTimezoneLocation(timezone4Name); loc != nil {
 					tzTime := now.In(loc)
-					timezone4Text.Text = formatTimezoneTime(tzTime, timezone4Name, utcFormat)
+					timezone4Text.Text = formatTimezoneTime(tzTime, timezone4Name, nonutcFormat)
 					fyne.Do(func() {
 						timezone4Text.Refresh()
 					})
@@ -450,7 +459,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 				if valid {
 					offsetDuration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute
 					tzTime := utcTime.Add(offsetDuration)
-					timezone5Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", utcFormat)
+					timezone5Text.Text = formatTimezoneTimeFromOffset(tzTime, hours, minutes, "Custom", nonutcFormat)
 					fyne.Do(func() {
 						timezone5Text.Refresh()
 					})
@@ -458,7 +467,7 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, dateFormat string
 			} else if timezone5Name != "" {
 				if loc := getTimezoneLocation(timezone5Name); loc != nil {
 					tzTime := now.In(loc)
-					timezone5Text.Text = formatTimezoneTime(tzTime, timezone5Name, utcFormat)
+					timezone5Text.Text = formatTimezoneTime(tzTime, timezone5Name, nonutcFormat)
 					fyne.Do(func() {
 						timezone5Text.Refresh()
 					})
