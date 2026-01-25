@@ -16,7 +16,7 @@ tst/*
 bin/*
 *.sh
 installers/*
-installers2/*
+!installers/Readme.txt
 KrankyBearClock.app
 KrankyBearClock
 KrankyBearClock.exe
