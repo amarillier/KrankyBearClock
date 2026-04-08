@@ -68,7 +68,7 @@ Write-Host ""
 # fast update fyne before compile
 go get fyne.io/fyne/v2@latest # or a specific version like @v2.4.0
 go mod tidy
-go mod vendor
+go mod download
 
 # Verify winres make is installed and run
 go install github.com/tc-hib/go-winres@latest

@@ -4,6 +4,8 @@ Release notes
 - Possibly add homebrew / choco / Ubuntu snap packages
 - iPhone / Android compile
 
+0.4.6
+- Recompile with updated libraries to fix vulnerability
 
 0.4.5
 - Minor change in clock settings to position auto mute / unmute time widgets directly under the auto mute volume checkbox
