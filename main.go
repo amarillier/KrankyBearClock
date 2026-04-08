@@ -26,7 +26,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.6" // see FyneApp.toml
+	appVersion = "0.4.7" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -90,6 +90,8 @@ var datesize int
 var utcsize int
 var hourchimesound string
 var lastChimeHour int = -1                      // Track last hour when chime played to prevent double playback
+var lastAutomuteOnKey int64 = -1                // wallClockMinuteKey for last automute-on transition
+var lastAutomuteOffKey int64 = -1               // wallClockMinuteKey for last automute-off transition
 var clockUpdateLoopRunning bool = false         // Prevent multiple update loops from running
 var clockUpdateLoopStop chan bool               // Channel to stop the update loop
 var timezoneLocations map[string]*time.Location // Cache timezone locations
@@ -612,6 +614,11 @@ func updateAlert(a fyne.App, updtmsg string) {
 	})
 	// updt.CenterOnScreen() // run centered on primary (laptop) display
 	updt.Show()
+}
+
+func resetAutomuteScheduleDedupe() {
+	lastAutomuteOnKey = -1
+	lastAutomuteOffKey = -1
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

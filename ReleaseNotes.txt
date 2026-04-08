@@ -4,6 +4,9 @@ Release notes
 - Possibly add homebrew / choco / Ubuntu snap packages
 - iPhone / Android compile
 
+0.4.7
+- minor changes to clock functions
+
 0.4.6
 - Recompile with updated libraries to fix vulnerability
 

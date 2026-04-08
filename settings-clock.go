@@ -146,6 +146,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			case false:
 				automute = 0
 			}
+			resetAutomuteScheduleDedupe()
 			a.Preferences().SetInt("automute.default", automute)
 		})
 		chime := widget.NewCheck("", func(value bool) {
@@ -550,6 +551,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			muteonbutton.SetText("Mute: " + muteonlabel)
 			muteoffbutton.SetText("Unmute: " + muteofflabel)
 			muteonbutton.Refresh()
+			resetAutomuteScheduleDedupe()
 			chime.SetChecked(true)
 			hourchimesound = "cuckoo.mp3"
 			chimesound.Selected = hourchimesound
@@ -886,6 +888,8 @@ func writeDefaultSettings(a fyne.App) {
 	timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255")
 	datecolor = a.Preferences().StringWithFallback("datecolor.default", "131,222,74,255")
 	utccolor = a.Preferences().StringWithFallback("utccolor.default", "238,229,58,255")
+
+	resetAutomuteScheduleDedupe()
 
 	// Update display immediately
 	updateClockDisplayColors()
@@ -1230,6 +1234,7 @@ func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int
 				muteonbutton.Refresh()
 				a.Preferences().SetInt("muteonhr.default", muteonhr)
 				a.Preferences().SetInt("muteonmin.default", muteonmin)
+				resetAutomuteScheduleDedupe()
 			case "muteoff":
 				muteoffhr = hour
 				muteoffmin = min
@@ -1237,6 +1242,7 @@ func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int
 				muteoffbutton.Refresh()
 				a.Preferences().SetInt("muteoffhr.default", muteoffhr)
 				a.Preferences().SetInt("muteoffmin.default", muteoffmin)
+				resetAutomuteScheduleDedupe()
 			default:
 				hour = time.Now().Hour()
 				min = time.Now().Minute()
