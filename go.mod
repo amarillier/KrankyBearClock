@@ -6,7 +6,7 @@ require (
 	fyne.io/fyne/v2 v2.7.3
 	fyne.io/systray v1.12.0
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
-	github.com/amarillier/go-update-checker v0.0.3
+	github.com/amarillier/go-update-checker v0.0.4
 	github.com/go-vgo/robotgo v0.110.8
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/itchyny/volume-go v0.2.2
@@ -67,9 +67,9 @@ require (
 	github.com/yuin/goldmark v1.7.8 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/image v0.38.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/image v0.39.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
