@@ -47,7 +47,7 @@ run:
 build:
 	./setver.sh
 	go build -ldflags="-w -s" -o KrankyBearClock .
-	./setIcon.sh Resources/Images/KrankyBearBeret.png KrankyBearClock
+	./setIcon.sh assets/images/KrankyBearBeret.png KrankyBearClock
 .PHONY:build
 
 
@@ -66,14 +66,14 @@ linuxarm64:
 macamd64:
 	# GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
 	# ./setIcon.sh KrankyBear.png bin/MacOSAMD64/KrankyBearClock
-	./mkicns.sh Resources/Images/KrankyBearBeret.png
+	./mkicns.sh assets/images/KrankyBearBeret.png
 	./dmgbuildIntel.sh
 .PHONY:macamd64
 
 macarm64:
 	# GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
 	# ./setIcon.sh KrankyBear.png bin/MacOSAMD64/KrankyBearClock
-	./mkicns.sh Resources/Images/KrankyBearBeret.png
+	./mkicns.sh assets/images/KrankyBearBeret.png
 	./dmgbuildARM.sh
 .PHONY:macarm64
 

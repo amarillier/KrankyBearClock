@@ -31,6 +31,7 @@ var timezone5Text *canvas.Text
 
 // Weather display element
 var weatherText *canvas.Text
+var sunTimesLabel *canvas.Text
 
 // InitializeClockDisplay creates and initializes the clock display elements
 // Returns the container content for the clock window
@@ -142,6 +143,7 @@ func InitializeClockDisplay(a fyne.App, clockWindow fyne.Window) fyne.CanvasObje
 	timezone4Text = nil
 	timezone5Text = nil
 	weatherText = nil
+	sunTimesLabel = nil
 
 	// Build container based on what's shown
 	vbox := container.NewVBox()
@@ -192,11 +194,20 @@ func InitializeClockDisplay(a fyne.App, clockWindow fyne.Window) fyne.CanvasObje
 
 	// Add weather temperature display if weather is enabled
 	if weatherEnabled {
-		weatherText = canvas.NewText("", color.RGBA{R: tre, G: tgr, B: tbl, A: ta})
+		weatherText = canvas.NewText("", weatherLabelColor(weathercolor))
 		weatherText.TextStyle = fyne.TextStyle{Bold: true}
 		weatherText.Alignment = fyne.TextAlignCenter
 		weatherText.TextSize = float32(utcsize)
 		vbox.Add(weatherText)
+
+		// Sunrise/sunset directly below the weather line (data comes from the same Open-Meteo call)
+		if showSunTimes {
+			sunTimesLabel = canvas.NewText("", weatherLabelColor(suncolor))
+			sunTimesLabel.TextStyle = fyne.TextStyle{Bold: true}
+			sunTimesLabel.Alignment = fyne.TextAlignCenter
+			sunTimesLabel.TextSize = float32(utcsize)
+			vbox.Add(sunTimesLabel)
+		}
 	}
 
 	content := container.NewStack(background, vbox)
@@ -494,6 +505,12 @@ func StartClockUpdateLoop(offsetString, timeFormat, utcFormat, nonutcFormat, dat
 			fyne.Do(func() {
 				weatherText.Refresh()
 			})
+			if sunTimesLabel != nil {
+				sunTimesLabel.Text = sunTimesText()
+				fyne.Do(func() {
+					sunTimesLabel.Refresh()
+				})
+			}
 		}
 	}
 

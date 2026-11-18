@@ -26,4 +26,4 @@ util.go:func teapot(a fyne.App, w fyne.Window) {
 util.go:func listMatchingFiles(directory, pattern string) ([]string, error) {
 util.go:func dadjoke() string {
 util.go:func isProcessRunning(processRegex string) bool {
-util.go:func updateChecker(repoOwner string, repo string, repoName string, repodl string) (string, bool) {
+util.go:func updateChecker(repoOwner string, repo string, repoName string, repodl string, checkStatePath string) (string, bool) {

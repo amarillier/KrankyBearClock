@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "embed"
+	"flag"
 	"fmt"
 	"log"
 	"net/url"
@@ -20,14 +22,22 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"fyne.io/systray"
+
+	"github.com/amarillier/KrankyBearClock/internal/startup"
 	// audio "github.com/amarillier/KrankyBearModule/audio"
 	// audio "github.com/amarillier/KrankyBearModule/util"
 )
 
+// The version lives in the VERSION file (build/version.sh X.Y.Z).
+//
+//go:embed VERSION
+var versionFile string
+
+var appVersion = strings.TrimSpace(versionFile)
+
 const (
 	// appName    = "Kranky Bear Clock"
-	appVersion = "0.4.8" // see FyneApp.toml
-	appAuthor  = "Allan Marillier"
+	appAuthor = "Allan Marillier"
 )
 
 var appName = "Kranky Bear Clock"
@@ -82,6 +92,8 @@ var bgcolor string
 var timecolor string
 var datecolor string
 var utccolor string
+var weathercolor string // "" = follow the time color
+var suncolor string     // "" = follow the time color
 var timefont string
 var datefont string
 var utcfont string
@@ -142,16 +154,51 @@ func main() {
 	launchDir := filepath.Dir(exePath)
 	if runtime.GOOS == "darwin" {
 		if strings.HasPrefix(launchDir, "/Applications/KrankyBearClock") {
-			sndDir = launchDir + "/../Resources/Sounds"
-			imgDir = launchDir + "/../Resources/Images"
+			sndDir = launchDir + "/../assets/sounds"
+			imgDir = launchDir + "/../assets/images"
 		} else {
-			sndDir = launchDir + "/Resources/Sounds"
-			imgDir = launchDir + "/Resources/Images"
+			sndDir = launchDir + "/assets/sounds"
+			imgDir = launchDir + "/assets/images"
 		}
 	} else if runtime.GOOS == "windows" {
-		sndDir = launchDir + "/Resources/Sounds"
-		imgDir = launchDir + "/Resources/Images"
+		sndDir = launchDir + "/assets/sounds"
+		imgDir = launchDir + "/assets/images"
 	}
+
+	// Dev builds run straight from bin/ (or bin/<platform>/), where no assets folder is copied: fall back to the
+	// project-level assets directory so sounds and images are still found.
+	if _, err := os.Stat(sndDir); err != nil {
+		for _, rel := range []string{"/../assets", "/../../assets"} {
+			candidate := filepath.Clean(launchDir + rel)
+			if _, err := os.Stat(candidate + "/sounds"); err == nil {
+				sndDir = candidate + "/sounds"
+				imgDir = candidate + "/images"
+				break
+			}
+		}
+	}
+
+	mesaFallbackFlag := flag.Bool(startup.MesaFallbackFlagName, false, "internal: relaunch flag for the Mesa3D OpenGL fallback (Windows only)")
+	// Override the Mesa fallback's automatic rasterizer pick (see startup.chooseGalliumDriver): llvmpipe is the fast default,
+	// softpipe the safe one. Accepted on every OS so one command line works everywhere; only acts on Windows.
+	mesaCompatFlag := flag.Bool(startup.MesaCompatFlagName, false, "Windows only: force the Mesa software-OpenGL fallback's safe, slower softpipe rasterizer (use if the app hangs after the first frame on a VM with a conservative virtual CPU, e.g. Proxmox kvm64/qemu64)")
+	mesaPerformanceFlag := flag.Bool(startup.MesaPerformanceFlagName, false, "Windows only: force the fast llvmpipe rasterizer even if this host's CPU looks like a conservative virtual CPU (only once you have confirmed it does not hang)")
+	// Only dash-prefixed arguments are flags: a positional first argument ("debug") must not stop flag parsing, or the
+	// -mesa-gl-fallback flag the relaunch appends after it would go unseen.
+	var flagArgs []string
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "-") {
+			flagArgs = append(flagArgs, arg)
+		}
+	}
+	_ = flag.CommandLine.Parse(flagArgs)
+
+	// Windows only (no-op elsewhere): prefer real hardware OpenGL, falling
+	// back to the bundled Mesa3D software renderer (relaunching once) only
+	// if the hardware probe fails. Must run before app.New/NewWithID - GLFW
+	// only supports one Init/Terminate cycle per process, shared with
+	// Fyne's own driver (see internal/startup/opengl.go).
+	startup.EnsureWindowsOpenGLReady(*mesaFallbackFlag, *mesaCompatFlag, *mesaPerformanceFlag)
 
 	a := app.NewWithID("com.github.amarillier.KrankyBearClock")
 	// Initialize speaker at startup for faster audio
@@ -172,6 +219,7 @@ func main() {
 	// clock.CenterOnScreen() // run centered on primary (laptop) display
 
 	prefs = strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
+	updateCheckPath := filepath.Join(filepath.Dir(prefs), "latestcheck-KrankyBearClock.json")
 	if !checkFileExists(prefs) {
 		if debug == 1 {
 			log.Println("prefs file does not exist")
@@ -199,7 +247,9 @@ func main() {
 	utccolor = a.Preferences().StringWithFallback("utccolor.default", "238,229,58.255")   // yellow
 	timefont = a.Preferences().StringWithFallback("timefont.default", "arial")            // not yet!
 	datefont = a.Preferences().StringWithFallback("datefont.default", "arial")            // not yet!
-	utcfont = a.Preferences().StringWithFallback("utcfont.default", "arial")              // not yet!
+	weathercolor = a.Preferences().StringWithFallback("weathercolor.default", "")
+	suncolor = a.Preferences().StringWithFallback("suncolor.default", "")
+	utcfont = a.Preferences().StringWithFallback("utcfont.default", "arial") // not yet!
 	timesize = a.Preferences().IntWithFallback("timesize.default", 36)
 	datesize = a.Preferences().IntWithFallback("datesize.default", 24)
 	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
@@ -288,7 +338,7 @@ func main() {
 	}
 
 	// check update first
-	updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
+	updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest", updateCheckPath)
 	if updateAvail {
 		// open a window to show the update message
 		// no need to test for updt window open at first start
@@ -307,6 +357,11 @@ func main() {
 			aboutText += "\n\nCreated by " + appAuthor + ", using Go and fyne GUI"
 			aboutText += "\n\nNo obligation, it's rewarding to hear if use this app."
 			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
+			if runtime.GOOS == "windows" {
+				// which OpenGL path this launch uses (hardware, or the Mesa3D software fallback)
+				aboutText += "\n\n" + renderingStatusText()
+				aboutText += "\nThe Windows package includes Mesa 3D (MIT and other licences) as a software OpenGL fallback: see mesa-fallback\\MESA-NOTICE.txt."
+			}
 
 			kb := canvas.NewImageFromResource(resourceKrankyBearBeretPng)
 			_, month, _ := time.Now().Date()
@@ -378,6 +433,12 @@ func main() {
 - See Settings Info tab for more detail on settings / preferences
 
 - Default settings will be created on first run if they don't exist
+
+- Windows: with no usable hardware OpenGL (a VM or locked-down host) the clock automatically falls back to a bundled
+  Mesa3D software renderer and relaunches once; nothing to configure. llvmpipe (fast) is used by default, softpipe (safe)
+  on virtual CPUs without SSE4.1; the -mesa-gl-compat / -mesa-gl-performance flags force one or the other. To skip the
+  one-time probe on a host known to need it, move opengl32.dll and libgallium_wgl.dll from the installed 'mesa-fallback'
+  folder next to the .exe. About shows which renderer is in use.
 `
 				hlpText += "\n" + appName + " v " + appVersion
 				hlpText += "\n" + appCopyright
@@ -441,7 +502,7 @@ Settings contains defaults as below, which can be modified, and also reset to de
 "timefont.default":"arial","timesize.default":48,"utccolor.default":"238,229,58,255",
 "utcfont.default":"arial","utcsize.default":18}
 
-KrankyBearClock looks for directories named Resources/Images and Resources/Sounds,
+KrankyBearClock looks for directories named assets/images and assets/sounds,
 containing images and sounds.
 
 IMAGES:
@@ -515,7 +576,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
 			// throw away updateAvail here, use _, unneeded for manual check
-			updtmsg, _ := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest")
+			updtmsg, _ := updateChecker("amarillier", "KrankyBearClock", "Kranky Bear Clock", "https://github.com/amarillier/KrankyBearClock/releases/latest", updateCheckPath)
 			if updt == nil {
 				updateAlert(a, updtmsg)
 			} else {
@@ -530,7 +591,18 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		} else {
 			desk.SetSystemTrayIcon(resourceKrankyBearBeretPng)
 		}
-		systray.SetTooltip(appName)
+		// Deferred slightly: unlike Fyne's own SetSystemTrayIcon call above
+		// (which Fyne caches and re-applies once the tray is truly ready),
+		// a raw systray.SetTooltip call made directly from application code
+		// like this has no equivalent retry/caching if the tray isn't fully
+		// initialized yet at the moment this runs -- confirmed as a real,
+		// not just theoretical, timing risk while adding this same call to
+		// KrankyBearProcessMiner. This inline call may well have already
+		// been working by chance in this app's own particular startup
+		// ordering, but wrapping it removes that chance dependency.
+		time.AfterFunc(300*time.Millisecond, func() {
+			systray.SetTooltip(appName)
+		})
 		// systray.SetTitle(clockName)
 
 		// Menu items
@@ -622,3 +694,16 @@ func resetAutomuteScheduleDedupe() {
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
+
+// renderingStatusText reports which OpenGL path this launch uses: real hardware, or the bundled Mesa3D software fallback with
+// the rasterizer (llvmpipe fast / softpipe safe) and the pinned Mesa version when known.
+func renderingStatusText() string {
+	active, version, driver := startup.MesaFallbackActive()
+	if !active {
+		return "Rendering: hardware OpenGL"
+	}
+	if version == "" {
+		return "Rendering: Mesa3D software OpenGL (" + driver + ")"
+	}
+	return "Rendering: Mesa3D software OpenGL (" + driver + ", Mesa " + version + ")"
+}

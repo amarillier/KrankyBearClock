@@ -21,12 +21,9 @@ KrankyBearClock.app
 KrankyBearClock
 KrankyBearClock.exe
 UNUSED/*
-ResourcesUnused/*
-Resources/*.txt
-Resources/*/notUsed
-ResourcesUnused
-latestcheck.json
+latestcheck*.json
 DEPRECATED/*
+clock
 
 # Distribution / packaging
 *.zip
@@ -44,3 +41,17 @@ vendor/*
 # ALLOW example
 !MicrosoftDefender.zip
 !packages/7z*
+
+# Build host details and retired scripts (see build/)
+/build/hosts.env
+/build/legacy/
+
+# Mesa3D software-OpenGL DLLs are fetched by build/tools/get-mesa.sh and never committed; its download scratch space neither.
+/assets/mesa-win/*.dll
+/mesa-staging/
+
+# Mesa3D fallback: its helper scripts are tracked (with the version pin, licence texts and markers in assets/mesa-win);
+# build scripts, the DLLs and the download scratch space are not.
+!/build/tools/get-mesa.sh
+!/build/tools/check_mesa_updates.sh
+!/build/tools/fetch_mesa_licenses.sh

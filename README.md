@@ -18,6 +18,7 @@ preferences stored via fyne preferences API land in
 * show 12 / 24 hour time
 * hourly chime and chime selector, optional auto mute and unmute sound at specified times
 * settings to allow modifying font sizes, colors, font name, background color
+* Windows: if the machine has no usable hardware OpenGL (a VM or locked-down host), the app automatically falls back to a bundled Mesa3D software renderer and relaunches once. Nothing to configure, and no effect on machines with working OpenGL. It uses the fast llvmpipe rasterizer, or the safer softpipe on virtual CPUs without SSE4.1; `-mesa-gl-compat` / `-mesa-gl-performance` force one or the other. To skip the one-time probe on a host known to need it, move `opengl32.dll` and `libgallium_wgl.dll` from the installed `mesa-fallback` folder next to the `.exe`. About shows which renderer is in use.
 * Available for Windows with Setup.exe and MacOS .dmg installers, as well as zip files for portable apps 
 
 # To-do / known problems

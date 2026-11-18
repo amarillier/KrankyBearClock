@@ -1,11 +1,10 @@
-# prepare-deps.ps1 - Prepare Go dependencies for KrankyBear LaunchPad (Windows)
-# This script downloads all required packages, tidies the module, and creates a vendor directory
-# for efficient first-time compilation.
+# prepare-deps.ps1 - Prepare Go dependencies (Windows)
+# Downloads modules, pre-fetches Fyne/OpenGL deps, tidies and verifies go.mod (module cache; sync excludes vendor/).
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "KrankyBear Clock - Dependency Setup" -ForegroundColor Cyan
+Write-Host "KrankyBear Template - Dependency Setup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -28,6 +27,14 @@ if (-not (Test-Path "go.mod")) {
     exit 1
 }
 
+$env:GOWORK = "off"
+$gf = $env:GOFLAGS
+if ($gf -and $gf -match "-mod=vendor") {
+    Write-Host "NOTE: Replacing -mod=vendor in GOFLAGS with -mod=mod (sync2windows excludes vendor/)." -ForegroundColor Yellow
+    $gf = $gf -replace "-mod=vendor", "-mod=mod"
+    $env:GOFLAGS = $gf
+}
+
 Write-Host "Step 1: Downloading all dependencies..." -ForegroundColor Yellow
 Write-Host "Running: go mod download"
 try {
@@ -40,6 +47,17 @@ try {
     }
 } catch {
     Write-Host "✗ Failed to download dependencies: $_" -ForegroundColor Red
+    exit 1
+}
+Write-Host "Running: go mod download github.com/go-gl/gl (Fyne / Windows desktop)"
+try {
+    & go mod download github.com/go-gl/gl github.com/go-gl/glfw/v3.4/glfw
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[FAIL] go-gl download failed" -ForegroundColor Red
+        exit 1
+    }
+} catch {
+    Write-Host "[FAIL] go-gl download failed: $_" -ForegroundColor Red
     exit 1
 }
 Write-Host ""
@@ -74,21 +92,6 @@ try {
 }
 Write-Host ""
 
-Write-Host "Step 4: Creating vendor directory..." -ForegroundColor Yellow
-Write-Host "Running: go mod download"
-try {
-    & go mod download
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Vendor directory created successfully" -ForegroundColor Green
-    } else {
-        Write-Host "✗ Failed to update vendor directory" -ForegroundColor Red
-        exit 1
-    }
-} catch {
-    Write-Host "✗ Failed to create vendor directory: $_" -ForegroundColor Red
-    exit 1
-}
-Write-Host ""
 
 # Count dependencies (with error handling)
 $directDeps = 0
@@ -134,7 +137,7 @@ Write-Host "  • Indirect dependencies: $indirectDeps"
 Write-Host "  • Vendor packages: $vendorCount"
 Write-Host ""
 Write-Host "You can now build the application with:" -ForegroundColor Green
-Write-Host "  go build -o KrankyBearClock.exe"
+Write-Host "  go build -trimpath -ldflags="-s -w" -o <name>.exe"
 Write-Host ""
 
 # Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning. - Winston Churchill, November 10, 1942

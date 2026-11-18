@@ -4,6 +4,18 @@ Release notes
 - Possibly add homebrew / choco / Ubuntu snap packages
 - iPhone / Android compile
 
+## Version 0.4.9 - November 18, 2026
+
+- Sunrise and sunset times, shown on the clock directly below the weather line. Optional: enable "Show sunrise/sunset on clock" in the Weather window (off by default, requires weather to be enabled)
+- Times come from the same Open-Meteo request as the weather, local to the selected location, so no additional network calls
+- New settings to choose the weather and sunrise/sunset colors on the clock (Clock settings: "Weather Color", "Sunrise/Sunset Color"); until chosen they follow the time color
+- Dev builds run directly from bin/ now find the project assets folder for sounds and images instead of failing when opening settings
+
+0.4.8 - April 12, 2026
+- Go package security updates
+- Windows: automatic Mesa3D software-OpenGL fallback (llvmpipe, or softpipe on conservative VM CPUs) for VMs and locked-down hosts with no hardware OpenGL. The app probes for hardware OpenGL at launch and relaunches once with the bundled Mesa3D renderer if needed; -mesa-gl-compat / -mesa-gl-performance force the rasterizer. About shows the renderer in use
+- Resources folder renamed to assets (assets/sounds, assets/images); Inno Setup scripts replaced by installerbear.yaml
+
 0.4.7
 - minor changes to clock functions
 
